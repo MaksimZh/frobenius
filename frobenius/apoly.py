@@ -20,5 +20,13 @@ class ArrayPoly:
 
     def __call__(self, x):
         pows = np.arange(self.npow)
-        xPows = (x ** pows)[(slice(None),) + (np.newaxis,) * self.ndim]
-        return np.sum(self.coefs * xPows, axis=0)
+        a = (slice(None),)
+        na = (np.newaxis,)
+        ell = (Ellipsis,)
+        if isinstance(x, np.ndarray):
+            cs = a + na * x.ndim + ell
+            xPows = x[na + ell + na * self.ndim] ** pows[a + na * (x.ndim + self.ndim)]
+        else:
+            cs = ()
+            xPows = x ** pows[a + na * self.ndim]
+        return np.sum(self.coefs[cs] * xPows, axis=0)

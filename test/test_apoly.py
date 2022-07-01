@@ -23,6 +23,12 @@ class Test(unittest.TestCase):
         x = 2
         np.testing.assert_allclose(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
+        x = np.array([2, 3])
+        np.testing.assert_allclose(a(x),
+            coefs[0] + coefs[1] * x + coefs[2] * x**2)
+        x = np.array([[2, 3, 4], [5, 6, 7]])
+        np.testing.assert_allclose(a(x),
+            coefs[0] + coefs[1] * x + coefs[2] * x**2)
 
     def test_basic_4_2x3(self):
         coefs = coefs_4_2x3
@@ -34,3 +40,17 @@ class Test(unittest.TestCase):
         x = 2
         np.testing.assert_allclose(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2 + coefs[3] * x**3)
+        x = np.array([2, 3])
+        xa = x[..., np.newaxis, np.newaxis]
+        np.testing.assert_allclose(a(x),
+            coefs[0, np.newaxis] + \
+            coefs[1, np.newaxis] * xa + \
+            coefs[2, np.newaxis] * xa**2 + \
+            coefs[3, np.newaxis] * xa**3)
+        x = np.array([[2, 3, 4], [5, 6, 7]])
+        xa = x[..., np.newaxis, np.newaxis]
+        np.testing.assert_allclose(a(x),
+            coefs[0, np.newaxis, np.newaxis] + \
+            coefs[1, np.newaxis, np.newaxis] * xa + \
+            coefs[2, np.newaxis, np.newaxis] * xa**2 + \
+            coefs[3, np.newaxis, np.newaxis] * xa**3)
