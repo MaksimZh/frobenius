@@ -277,3 +277,11 @@ class TestArithmetic(unittest.TestCase):
         np.testing.assert_equal((a * b)(x), a(x) * b(x))
         b = ArrayPoly(genCoefs(2, 2, 1))
         np.testing.assert_equal((a * b)(x), a(x) * b(x))
+
+    def test_matmul(self):
+        x = np.arange(5)
+        a = ArrayPoly(genCoefs(4, 5, 2, 3))
+        b = ArrayPoly(genCoefs(2, 5, 3, 4))
+        np.testing.assert_equal((a @ b)(x), a(x) @ b(x))
+        b = ArrayPoly(genCoefs(2, 1, 3, 4))
+        np.testing.assert_equal((a @ b)(x), a(x) @ b(x))

@@ -87,3 +87,14 @@ class ArrayPoly:
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] -= value.coefs
         return ArrayPoly(coefs)
+
+    def __matmul__(self, value):
+        assert(self.ndim >= 2)
+        assert(value.ndim >= 2)
+        npow = self.npow + value.npow - 1
+        bc = np.broadcast(self.coefs[0, ..., 0:1], value.coefs[0, ..., 0:1, :])
+        coefs = np.zeros((npow, *bc.shape),
+            dtype=np.result_type(self.coefs, value.coefs))
+        for s in range(self.npow):
+            coefs[s : s + value.npow] += self.coefs[s : s + 1] @ value.coefs
+        return ArrayPoly(coefs)
