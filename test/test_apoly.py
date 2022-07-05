@@ -5,20 +5,18 @@ import numpy as np
 from frobenius.apoly import ArrayPoly
 
 
-def genCoefs(npow, dims = ()):
-    if not isinstance(dims, tuple):
-        dims = (dims,)
-    if len(dims) == 0:
-        return np.arange(1, npow + 1)
-    n = np.prod(dims)
+def genCoefs(*args):
+    if len(args) < 2:
+        return np.arange(1, args[0] + 1)
+    n = np.prod(args[1:])
     n1 = n
     f = 1
     while n1 > 0:
         f *= 10
         n1 //= 10
-    s = (slice(None),) + (np.newaxis,) * len(dims)
-    return f * np.arange(1, npow + 1)[s] + \
-        np.arange(1, n + 1).reshape(*dims)
+    s = (slice(None),) + (np.newaxis,) * (len(args) - 1)
+    return f * np.arange(1, args[0] + 1)[s] + \
+        np.arange(1, n + 1).reshape(*args[1:])
 
 
 class TestGenCoefs(unittest.TestCase):
@@ -30,13 +28,13 @@ class TestGenCoefs(unittest.TestCase):
             [21, 22, 23, 24, 25],
             [31, 32, 33, 34, 35],
             ])
-        np.testing.assert_equal(genCoefs(4, (2, 3)), [
+        np.testing.assert_equal(genCoefs(4, 2, 3), [
             [[11, 12, 13], [14, 15, 16]],
             [[21, 22, 23], [24, 25, 26]],
             [[31, 32, 33], [34, 35, 36]],
             [[41, 42, 43], [44, 45, 46]],
             ])
-        np.testing.assert_equal(genCoefs(3, (5, 2, 4)), [
+        np.testing.assert_equal(genCoefs(3, 5, 2, 4), [
             [
                 [[101, 102, 103, 104], [105, 106, 107, 108]],
                 [[109, 110, 111, 112], [113, 114, 115, 116]],
@@ -62,7 +60,7 @@ class TestGenCoefs(unittest.TestCase):
 
 
 class TestBasic(unittest.TestCase):
-    
+
     def test_3(self):
         coefs = genCoefs(3)
         a = ArrayPoly(coefs)
@@ -104,7 +102,7 @@ class TestBasic(unittest.TestCase):
             coefs[2, np.newaxis, np.newaxis] * xa**2)
 
     def test_4_2x3(self):
-        coefs = genCoefs(4, (2, 3))
+        coefs = genCoefs(4, 2, 3)
         a = ArrayPoly(coefs)
         np.testing.assert_equal(a.coefs, coefs)
         self.assertEqual(a.ndim, 2)
@@ -129,7 +127,7 @@ class TestBasic(unittest.TestCase):
             coefs[3, np.newaxis, np.newaxis] * xa**3)
 
     def test_3_5x2x4(self):
-        coefs = genCoefs(3, (5, 2, 4))
+        coefs = genCoefs(3, 5, 2, 4)
         a = ArrayPoly(coefs)
         np.testing.assert_equal(a.coefs, coefs)
         self.assertEqual(a.ndim, 3)
@@ -155,28 +153,71 @@ class TestBasic(unittest.TestCase):
 class TestIndex(unittest.TestCase):
 
     def test_3_5(self):
+
         ca = genCoefs(3, 5)
+
         a = ArrayPoly(ca)
-        x = 5
-        np.testing.assert_equal(a[...](x), a(x)[...])
-        np.testing.assert_equal(a[:](x), a(x)[:])
-        np.testing.assert_equal(a[2](x), a(x)[2])
-        np.testing.assert_equal(a[1:4](x), a(x)[1:4])
-        cb = genCoefs(3)
+        np.testing.assert_equal(a[...].coefs, a.coefs[:, ...])
+        np.testing.assert_equal(a[:].coefs, a.coefs[:, :])
+        np.testing.assert_equal(a[2].coefs, a.coefs[:, 2])
+        np.testing.assert_equal(a[1:4].coefs, a.coefs[:, 1:4])
+
+        a = ArrayPoly(ca)
+        cb = genCoefs(3, 2)
         cc = ca.copy()
-        cc[:, 1] = cb
-        a[1] = ArrayPoly(cb)
+        cc[:, 1:3] = cb
+        a[1:3] = ArrayPoly(cb)
         np.testing.assert_equal(a.coefs, cc)
 
+        a = ArrayPoly(ca)
+        cb = genCoefs(2, 2)
+        cc = ca.copy()
+        cc[:2, 1:3] = cb
+        a[1:3] = ArrayPoly(cb)
+        np.testing.assert_equal(a.coefs, cc)
+
+        a = ArrayPoly(ca)
+        cb = genCoefs(6, 2)
+        cc = np.zeros((6, 5))
+        cc[:3] = ca
+        cc[:, 1:3] = cb
+        a[1:3] = ArrayPoly(cb)
+        np.testing.assert_equal(a.coefs, cc)
+
+
     def test_3_5x6(self):
-        a = ArrayPoly(genCoefs(3, (5, 6)))
-        x = 5
-        np.testing.assert_equal(a[...](x), a(x)[...])
-        np.testing.assert_equal(a[:](x), a(x)[:])
-        np.testing.assert_equal(a[2](x), a(x)[2])
-        np.testing.assert_equal(a[1:4](x), a(x)[1:4])
-        np.testing.assert_equal(a[:, :](x), a(x)[:, :])
-        np.testing.assert_equal(a[2, 3](x), a(x)[2, 3])
-        np.testing.assert_equal(a[:, 3](x), a(x)[:, 3])
-        np.testing.assert_equal(a[2, 1:4](x), a(x)[2, 1:4])
-        np.testing.assert_equal(a[2:5, 1:4](x), a(x)[2:5, 1:4])
+
+        ca = genCoefs(3, 5, 6)
+
+        a = ArrayPoly(ca)
+        np.testing.assert_equal(a[...].coefs, a.coefs[:, ...])
+        np.testing.assert_equal(a[:].coefs, a.coefs[:, :])
+        np.testing.assert_equal(a[2].coefs, a.coefs[:, 2])
+        np.testing.assert_equal(a[1:4].coefs, a.coefs[:, 1:4])
+        np.testing.assert_equal(a[:, :].coefs, a.coefs[:, :, :])
+        np.testing.assert_equal(a[2, 3].coefs, a.coefs[:, 2, 3])
+        np.testing.assert_equal(a[:, 3].coefs, a.coefs[:, :, 3])
+        np.testing.assert_equal(a[2, 1:4].coefs, a.coefs[:, 2, 1:4])
+        np.testing.assert_equal(a[2:4, 1:5].coefs, a.coefs[:, 2:4, 1:5])
+
+        a = ArrayPoly(ca)
+        cb = genCoefs(3, 2, 4)
+        cc = ca.copy()
+        cc[:, 2:4, 1:5] = cb
+        a[2:4, 1:5] = ArrayPoly(cb)
+        np.testing.assert_equal(a.coefs, cc)
+
+        a = ArrayPoly(ca)
+        cb = genCoefs(2, 2, 4)
+        cc = ca.copy()
+        cc[:2, 2:4, 1:5] = cb
+        a[2:4, 1:5] = ArrayPoly(cb)
+        np.testing.assert_equal(a.coefs, cc)
+
+        a = ArrayPoly(ca)
+        cb = genCoefs(6, 2, 4)
+        cc = np.zeros((6, 5, 6))
+        cc[:3] = ca
+        cc[:, 2:4, 1:5] = cb
+        a[2:4, 1:5] = ArrayPoly(cb)
+        np.testing.assert_equal(a.coefs, cc)

@@ -42,7 +42,8 @@ class ArrayPoly:
 
     def __setitem__(self, index, value):
         if value.npow > self.npow:
-            coefs = np.zeros((value.npow,) + self.shape, dtype=coefs.dtype)
+            coefs = np.zeros((value.npow,) + self.shape,
+                dtype=self.coefs.dtype)
             coefs[:self.npow] = self.coefs
             self.coefs = coefs
         self.coefs[self.__coefsIndex(index)][:value.npow] = value.coefs
