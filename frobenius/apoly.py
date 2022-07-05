@@ -42,8 +42,7 @@ class ArrayPoly:
 
     def __setitem__(self, index, value):
         if value.npow > self.npow:
-            coefs = np.zeros((value.npow,) + self.shape,
-                dtype=self.coefs.dtype)
+            coefs = np.zeros((value.npow, *self.shape), dtype=self.coefs.dtype)
             coefs[:self.npow] = self.coefs
             self.coefs = coefs
         self.coefs[self.__coefsIndex(index)][:value.npow] = value.coefs
@@ -62,3 +61,12 @@ class ArrayPoly:
 
     def __truediv__(self, value):
         return ArrayPoly(self.coefs / value)
+
+    def __add__(self, value):
+        assert(self.shape == value.shape)
+        npow = max(self.npow, value.npow)
+        coefs = np.zeros((npow, *self.shape),
+            dtype=np.result_type(self.coefs, value.coefs))
+        coefs[:self.npow] += self.coefs
+        coefs[:value.npow] += value.coefs
+        return ArrayPoly(coefs)
