@@ -251,3 +251,16 @@ class TestArithmetic(unittest.TestCase):
         cc = b.coefs.copy()
         cc[:4] += a.coefs
         np.testing.assert_equal((a + b).coefs, cc)
+
+    def test_sub(self):
+        a = ArrayPoly(genCoefs(4, 2, 3))
+        b = ArrayPoly(genCoefs(4, 2, 3))
+        np.testing.assert_equal((a - b).coefs, a.coefs - b.coefs)
+        b = ArrayPoly(genCoefs(2, 2, 3))
+        cc = a.coefs.copy()
+        cc[:2] -= b.coefs
+        np.testing.assert_equal((a - b).coefs, cc)
+        b = ArrayPoly(genCoefs(6, 2, 3))
+        cc = -b.coefs
+        cc[:4] += a.coefs
+        np.testing.assert_equal((a - b).coefs, cc)

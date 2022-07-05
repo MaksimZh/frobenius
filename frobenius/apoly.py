@@ -70,3 +70,12 @@ class ArrayPoly:
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] += value.coefs
         return ArrayPoly(coefs)
+
+    def __sub__(self, value):
+        assert(self.shape == value.shape)
+        npow = max(self.npow, value.npow)
+        coefs = np.zeros((npow, *self.shape),
+            dtype=np.result_type(self.coefs, value.coefs))
+        coefs[:self.npow] += self.coefs
+        coefs[:value.npow] -= value.coefs
+        return ArrayPoly(coefs)
