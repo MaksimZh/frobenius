@@ -54,10 +54,18 @@ class ArrayPoly:
         return ArrayPoly(-self.coefs)
 
     def __mul__(self, value):
-        return ArrayPoly(self.coefs * value)
+        if not isinstance(value, ArrayPoly):
+            return ArrayPoly(self.coefs * value)
+        assert(self.shape == value.shape)
+        npow = self.npow + value.npow - 1
+        coefs = np.zeros((npow, *self.shape),
+            dtype=np.result_type(self.coefs, value.coefs))
+        for s in range(self.npow):
+            coefs[s : s + value.npow] += self.coefs[s : s + 1] * value.coefs
+        return ArrayPoly(coefs)
 
     def __rmul__(self, value):
-        return ArrayPoly(value * self.coefs)
+        return self * value
 
     def __truediv__(self, value):
         return ArrayPoly(self.coefs / value)

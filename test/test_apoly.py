@@ -265,3 +265,9 @@ class TestArithmetic(unittest.TestCase):
         cc = -b.coefs
         cc[:4] += a.coefs
         np.testing.assert_equal((a - b).coefs, cc)
+
+    def test_mul(self):
+        a = ArrayPoly(genCoefs(4, 2, 3))
+        b = ArrayPoly(genCoefs(2, 2, 3))
+        x = np.arange(5)
+        np.testing.assert_equal((a * b)(x), a(x) * b(x))
