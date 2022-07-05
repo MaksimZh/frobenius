@@ -31,8 +31,18 @@ class ArrayPoly:
             xPows = x ** pows[a + na * self.ndim]
         return np.sum(self.coefs[cs] * xPows, axis=0)
 
-    def __getitem__(self, index):
+    def __coefsIndex(self, index):
         if isinstance(index, tuple):
-            return ArrayPoly(self.coefs[(slice(None),) + index])
+            return (slice(None),) + index
         else:
-            return ArrayPoly(self.coefs[:, index])
+            return (slice(None), index)
+
+    def __getitem__(self, index):
+        return ArrayPoly(self.coefs[self.__coefsIndex(index)])
+
+    def __setitem__(self, index, value):
+        if value.npow > self.npow:
+            coefs = np.zeros((value.npow,) + self.shape, dtype=coefs.dtype)
+            coefs[:self.npow] = self.coefs
+            self.coefs = coefs
+        self.coefs[self.__coefsIndex(index)][:value.npow] = value.coefs

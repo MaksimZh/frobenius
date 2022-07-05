@@ -66,39 +66,39 @@ class TestBasic(unittest.TestCase):
     def test_3(self):
         coefs = genCoefs(3)
         a = ArrayPoly(coefs)
-        np.testing.assert_allclose(a.coefs, coefs)
+        np.testing.assert_equal(a.coefs, coefs)
         self.assertEqual(a.ndim, 0)
         self.assertEqual(a.npow, 3)
         self.assertEqual(a.shape, ())
         x = 2
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
         x = np.array([2, 3])
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
         x = np.array([[2, 3, 4], [5, 6, 7]])
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
 
     def test_3_5(self):
         coefs = genCoefs(3, 5)
         a = ArrayPoly(coefs)
-        np.testing.assert_allclose(a.coefs, coefs)
+        np.testing.assert_equal(a.coefs, coefs)
         self.assertEqual(a.ndim, 1)
         self.assertEqual(a.npow, 3)
         self.assertEqual(a.shape, (5,))
         x = 2
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
         x = np.array([2, 3])
         xa = x[..., np.newaxis]
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0, np.newaxis] + \
             coefs[1, np.newaxis] * xa + \
             coefs[2, np.newaxis] * xa**2)
         x = np.array([[2, 3, 4], [5, 6, 7]])
         xa = x[..., np.newaxis]
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0, np.newaxis, np.newaxis] + \
             coefs[1, np.newaxis, np.newaxis] * xa + \
             coefs[2, np.newaxis, np.newaxis] * xa**2)
@@ -106,23 +106,23 @@ class TestBasic(unittest.TestCase):
     def test_4_2x3(self):
         coefs = genCoefs(4, (2, 3))
         a = ArrayPoly(coefs)
-        np.testing.assert_allclose(a.coefs, coefs)
+        np.testing.assert_equal(a.coefs, coefs)
         self.assertEqual(a.ndim, 2)
         self.assertEqual(a.npow, 4)
         self.assertEqual(a.shape, (2, 3))
         x = 2
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2 + coefs[3] * x**3)
         x = np.array([2, 3])
         xa = x[..., np.newaxis, np.newaxis]
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0, np.newaxis] + \
             coefs[1, np.newaxis] * xa + \
             coefs[2, np.newaxis] * xa**2 + \
             coefs[3, np.newaxis] * xa**3)
         x = np.array([[2, 3, 4], [5, 6, 7]])
         xa = x[..., np.newaxis, np.newaxis]
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0, np.newaxis, np.newaxis] + \
             coefs[1, np.newaxis, np.newaxis] * xa + \
             coefs[2, np.newaxis, np.newaxis] * xa**2 + \
@@ -131,22 +131,22 @@ class TestBasic(unittest.TestCase):
     def test_3_5x2x4(self):
         coefs = genCoefs(3, (5, 2, 4))
         a = ArrayPoly(coefs)
-        np.testing.assert_allclose(a.coefs, coefs)
+        np.testing.assert_equal(a.coefs, coefs)
         self.assertEqual(a.ndim, 3)
         self.assertEqual(a.npow, 3)
         self.assertEqual(a.shape, (5, 2, 4))
         x = 2
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
         x = np.array([2, 3])
         xa = x[..., np.newaxis, np.newaxis, np.newaxis]
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0, np.newaxis] + \
             coefs[1, np.newaxis] * xa + \
             coefs[2, np.newaxis] * xa**2)
         x = np.array([[2, 3, 4], [5, 6, 7]])
         xa = x[..., np.newaxis, np.newaxis, np.newaxis]
-        np.testing.assert_allclose(a(x),
+        np.testing.assert_equal(a(x),
             coefs[0, np.newaxis, np.newaxis] + \
             coefs[1, np.newaxis, np.newaxis] * xa + \
             coefs[2, np.newaxis, np.newaxis] * xa**2)
@@ -155,6 +155,28 @@ class TestBasic(unittest.TestCase):
 class TestIndex(unittest.TestCase):
 
     def test_3_5(self):
-        a = ArrayPoly(genCoefs(3, 5))
+        ca = genCoefs(3, 5)
+        a = ArrayPoly(ca)
         x = 5
-        np.testing.assert_allclose(a[0](x), a(x)[0])
+        np.testing.assert_equal(a[...](x), a(x)[...])
+        np.testing.assert_equal(a[:](x), a(x)[:])
+        np.testing.assert_equal(a[2](x), a(x)[2])
+        np.testing.assert_equal(a[1:4](x), a(x)[1:4])
+        cb = genCoefs(3)
+        cc = ca.copy()
+        cc[:, 1] = cb
+        a[1] = ArrayPoly(cb)
+        np.testing.assert_equal(a.coefs, cc)
+
+    def test_3_5x6(self):
+        a = ArrayPoly(genCoefs(3, (5, 6)))
+        x = 5
+        np.testing.assert_equal(a[...](x), a(x)[...])
+        np.testing.assert_equal(a[:](x), a(x)[:])
+        np.testing.assert_equal(a[2](x), a(x)[2])
+        np.testing.assert_equal(a[1:4](x), a(x)[1:4])
+        np.testing.assert_equal(a[:, :](x), a(x)[:, :])
+        np.testing.assert_equal(a[2, 3](x), a(x)[2, 3])
+        np.testing.assert_equal(a[:, 3](x), a(x)[:, 3])
+        np.testing.assert_equal(a[2, 1:4](x), a(x)[2, 1:4])
+        np.testing.assert_equal(a[2:5, 1:4](x), a(x)[2:5, 1:4])
