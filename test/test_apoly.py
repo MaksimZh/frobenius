@@ -5,10 +5,24 @@ import numpy as np
 from frobenius.apoly import ArrayPoly
 
 
+def genCoefs(npow, dims = ()):
+    if len(dims) == 0:
+        return np.arange(1, npow + 1)
+    n = np.prod(dims)
+    n1 = n
+    f = 1
+    while n1 > 0:
+        f *= 10
+        n1 //= 10
+    s = (slice(None),) + (np.newaxis,) * len(dims)
+    return f * np.arange(1, npow + 1)[s] + \
+        np.arange(1, n + 1).reshape(*dims)
+
+
 class Test(unittest.TestCase):
     
     def test_basic_3(self):
-        coefs = np.arange(1, 4) * 10
+        coefs = genCoefs(3)
         a = ArrayPoly(coefs)
         np.testing.assert_allclose(a.coefs, coefs)
         self.assertEqual(a.ndim, 0)
@@ -25,9 +39,7 @@ class Test(unittest.TestCase):
             coefs[0] + coefs[1] * x + coefs[2] * x**2)
 
     def test_basic_4_2x3(self):
-        coefs = \
-            10 * np.arange(1, 5)[:, np.newaxis, np.newaxis] + \
-            np.arange(1, 7).reshape(2, 3)
+        coefs = genCoefs(4, (2, 3))
         a = ArrayPoly(coefs)
         np.testing.assert_allclose(a.coefs, coefs)
         self.assertEqual(a.ndim, 2)
@@ -52,9 +64,7 @@ class Test(unittest.TestCase):
             coefs[3, np.newaxis, np.newaxis] * xa**3)
 
     def test_basic_3_5x2x4(self):
-        coefs = \
-            100 * np.arange(1, 4)[:, np.newaxis, np.newaxis, np.newaxis] + \
-            np.arange(1, 41).reshape(5, 2, 4)
+        coefs = genCoefs(3, (5, 2, 4))
         a = ArrayPoly(coefs)
         np.testing.assert_allclose(a.coefs, coefs)
         self.assertEqual(a.ndim, 3)
