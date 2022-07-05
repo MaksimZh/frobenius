@@ -53,3 +53,12 @@ class ArrayPoly:
 
     def __neg__(self):
         return ArrayPoly(-self.coefs)
+
+    def __mul__(self, value):
+        return ArrayPoly(self.coefs * value)
+
+    def __rmul__(self, value):
+        return ArrayPoly(value * self.coefs)
+
+    def __truediv__(self, value):
+        return ArrayPoly(self.coefs / value)

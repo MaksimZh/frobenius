@@ -232,3 +232,9 @@ class TestArithmetic(unittest.TestCase):
     def test_neg(self):
         a = ArrayPoly(genCoefs(4, 2, 3))
         np.testing.assert_equal((-a).coefs, -a.coefs)
+
+    def test_mul_scalar(self):
+        a = ArrayPoly(genCoefs(4, 2, 3))
+        np.testing.assert_equal((a * 5).coefs, a.coefs * 5)
+        np.testing.assert_equal((5 * a).coefs, 5 * a.coefs)
+        np.testing.assert_allclose((a / 5).coefs, a.coefs / 5)
