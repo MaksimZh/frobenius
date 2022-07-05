@@ -20,16 +20,16 @@ class ArrayPoly:
 
     def __call__(self, x):
         pows = np.arange(self.npow)
-        a = (slice(None),)
-        na = (np.newaxis,)
-        ell = (Ellipsis,)
+        si = (np.newaxis,) * self.ndim
         if isinstance(x, np.ndarray):
-            cs = a + na * x.ndim + ell
-            xPows = x[na + ell + na * self.ndim] ** pows[a + na * (x.ndim + self.ndim)]
+            xi = (np.newaxis,) * x.ndim
+            return np.sum(
+                    self.coefs[(slice(None),) + xi + (Ellipsis,)] * \
+                    x[(np.newaxis, Ellipsis) + si] ** \
+                    pows[(slice(None),) + xi + si],
+                axis=0)
         else:
-            cs = ()
-            xPows = x ** pows[a + na * self.ndim]
-        return np.sum(self.coefs[cs] * xPows, axis=0)
+            return np.sum(self.coefs * x ** pows[(slice(None),) + si], axis=0)
 
     def __coefsIndex(self, index):
         if isinstance(index, tuple):
