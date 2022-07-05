@@ -56,7 +56,6 @@ class ArrayPoly:
     def __mul__(self, value):
         if not isinstance(value, ArrayPoly):
             return ArrayPoly(self.coefs * value)
-        assert(self.shape == value.shape)
         npow = self.npow + value.npow - 1
         coefs = np.zeros((npow, *self.shape),
             dtype=np.result_type(self.coefs, value.coefs))
@@ -74,7 +73,6 @@ class ArrayPoly:
         return ArrayPoly(self.coefs // value)
 
     def __add__(self, value):
-        assert(self.shape == value.shape)
         npow = max(self.npow, value.npow)
         coefs = np.zeros((npow, *self.shape),
             dtype=np.result_type(self.coefs, value.coefs))
@@ -83,7 +81,6 @@ class ArrayPoly:
         return ArrayPoly(coefs)
 
     def __sub__(self, value):
-        assert(self.shape == value.shape)
         npow = max(self.npow, value.npow)
         coefs = np.zeros((npow, *self.shape),
             dtype=np.result_type(self.coefs, value.coefs))
