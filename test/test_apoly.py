@@ -221,3 +221,14 @@ class TestIndex(unittest.TestCase):
         cc[:, 2:4, 1:5] = cb
         a[2:4, 1:5] = ArrayPoly(cb)
         np.testing.assert_equal(a.coefs, cc)
+
+
+class TestArithmetic(unittest.TestCase):
+
+    def test_pos(self):
+        a = ArrayPoly(genCoefs(4, 2, 3))
+        np.testing.assert_equal((+a).coefs, a.coefs)
+    
+    def test_neg(self):
+        a = ArrayPoly(genCoefs(4, 2, 3))
+        np.testing.assert_equal((-a).coefs, -a.coefs)
