@@ -238,6 +238,7 @@ class TestArithmetic(unittest.TestCase):
         np.testing.assert_equal((a * 5).coefs, a.coefs * 5)
         np.testing.assert_equal((5 * a).coefs, 5 * a.coefs)
         np.testing.assert_allclose((a / 5).coefs, a.coefs / 5)
+        np.testing.assert_allclose((a // 3).coefs, a.coefs // 3)
 
     def test_add(self):
         a = ArrayPoly(genCoefs(4, 2, 3))

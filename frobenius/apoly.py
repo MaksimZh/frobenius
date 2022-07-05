@@ -62,6 +62,9 @@ class ArrayPoly:
     def __truediv__(self, value):
         return ArrayPoly(self.coefs / value)
 
+    def __floordiv__(self, value):
+        return ArrayPoly(self.coefs // value)
+
     def __add__(self, value):
         assert(self.shape == value.shape)
         npow = max(self.npow, value.npow)
