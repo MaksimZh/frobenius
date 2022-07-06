@@ -274,6 +274,22 @@ class TestSubst(unittest.TestCase):
             a.coefs[0] + a.coefs[1] * bx + a.coefs[2] * bx ** 2)
 
 
+class TestDivMod(unittest.TestCase):
+
+    def test_0d(self):
+        a = ArrayPoly(genCoefs(5))
+        b = ArrayPoly(genCoefs(3))
+        q, r = divmod(a, b)
+        x = np.arange(4)
+        np.testing.assert_allclose(a(x), (b * q + r)(x))
+
+    def test_3d(self):
+        a = ArrayPoly(genCoefs(5, 2, 3, 4))
+        b = ArrayPoly(genCoefs(3))
+        q, r = divmod(a, b)
+        x = np.arange(4)
+        np.testing.assert_allclose(a(x), (b * q + r)(x))
+
 from frobenius.apoly import _it
 
 class TestIT(unittest.TestCase):

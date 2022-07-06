@@ -99,6 +99,24 @@ class ArrayPoly:
             result *= self
         return result
 
+    def __divmod__(self, value):
+        if value.ndim > 0:
+            return NotImplemented
+        rca = self.coefs / np.ones_like(value.coefs[:1])[0]
+        vca = value.coefs[_it((), self.ndim)]
+        qcl = []
+        si = self.npow - value.npow
+        sf = self.npow - 1
+        for p in range(self.npow - value.npow + 1):
+            qc = rca[sf] / vca[-1]
+            rca[si : sf + 1] -= qc * vca
+            si -= 1
+            sf -= 1
+            qcl.append(qc)
+        rem = ArrayPoly(rca[: value.npow - 1])
+        quo = ArrayPoly(np.array(list(reversed(qcl))))
+        return quo, rem
+
     def __coefsIndex(self, index):
         if isinstance(index, tuple):
             return (slice(None),) + index
