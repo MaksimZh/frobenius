@@ -19,23 +19,12 @@ class ArrayPoly:
         return self.coefs.shape[1:]
 
     def __call__(self, x):
-        pows = np.arange(self.npow)
-        si = (np.newaxis,) * self.ndim
         if isinstance(x, np.ndarray):
-            xi = (np.newaxis,) * x.ndim
-            return np.sum(
-                    self.coefs[(slice(None),) + xi + (Ellipsis,)] * \
-                    x[(np.newaxis, Ellipsis) + si] ** \
-                    pows[(slice(None),) + xi + si],
-                axis=0)
+            return self.__evalArray(x)
+        elif isinstance(x, ArrayPoly):
+            return self.__substPoly(x)
         else:
-            return np.sum(self.coefs * x ** pows[(slice(None),) + si], axis=0)
-
-    def __coefsIndex(self, index):
-        if isinstance(index, tuple):
-            return (slice(None),) + index
-        else:
-            return (slice(None), index)
+            return self.__evalScalar(x)
 
     def __getitem__(self, index):
         return ArrayPoly(self.coefs[self.__coefsIndex(index)])
@@ -98,3 +87,50 @@ class ArrayPoly:
         for s in range(self.npow):
             coefs[s : s + value.npow] += self.coefs[s : s + 1] @ value.coefs
         return ArrayPoly(coefs)
+
+    def __pow__(self, value):
+        if type(value) != int:
+            return NotImplemented
+        result = ArrayPoly(np.ones_like(self.coefs[:1]))
+        for i in range(value):
+            result *= self
+        return result
+
+    def __coefsIndex(self, index):
+        if isinstance(index, tuple):
+            return (slice(None),) + index
+        else:
+            return (slice(None), index)
+
+    def __evalScalar(self, x):
+        pows = np.arange(self.npow)
+        return np.sum(
+            self.coefs * x ** pows[_it((), self.ndim)],
+            axis=0)
+
+    def __evalArray(self, x):
+        pows = np.arange(self.npow)
+        return np.sum(
+                self.coefs[_it((), x.ndim, -1)] * \
+                x[_it(1, -1, self.ndim)] ** \
+                pows[_it((), x.ndim, self.ndim)],
+            axis=0)
+
+    def __substPoly(self, x):
+        result = ArrayPoly(np.zeros_like(self.coefs[:1] * x.coefs[:1]))
+        for p in range(self.npow):
+            s = ArrayPoly(self.coefs[p : p + 1])
+            result += s * x ** p
+        return result
+
+
+def _it(*args):
+    result = ()
+    for a in args:
+        if a == ():
+            result += (slice(None),)
+        elif a >= 0:
+            result += (np.newaxis,) * a
+        else:
+            result += (Ellipsis,)
+    return result
