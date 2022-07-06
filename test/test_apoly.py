@@ -103,6 +103,7 @@ class TestIndex(unittest.TestCase):
         ca = genCoefs(3, 5)
 
         a = ArrayPoly(ca)
+        np.testing.assert_equal(a[np.newaxis].coefs, a.coefs[:, np.newaxis])
         np.testing.assert_equal(a[...].coefs, a.coefs[:, ...])
         np.testing.assert_equal(a[:].coefs, a.coefs[:, :])
         np.testing.assert_equal(a[2].coefs, a.coefs[:, 2])
@@ -136,6 +137,7 @@ class TestIndex(unittest.TestCase):
         ca = genCoefs(3, 5, 6)
 
         a = ArrayPoly(ca)
+        np.testing.assert_equal(a[np.newaxis].coefs, a.coefs[:, np.newaxis])
         np.testing.assert_equal(a[...].coefs, a.coefs[:, ...])
         np.testing.assert_equal(a[:].coefs, a.coefs[:, :])
         np.testing.assert_equal(a[2].coefs, a.coefs[:, 2])
