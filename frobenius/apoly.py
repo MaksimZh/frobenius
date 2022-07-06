@@ -60,7 +60,18 @@ class ArrayPoly:
         return ArrayPoly(self.coefs / value)
 
     def __floordiv__(self, value):
-        return ArrayPoly(self.coefs // value)
+        if isinstance(value, ArrayPoly):
+            q, _ = divmod(self, value)
+            return q
+        else:
+            return ArrayPoly(self.coefs // value)
+
+    def __mod__(self, value):
+        if not isinstance(value, ArrayPoly):
+            return NotImplemented
+        _, r = divmod(self, value)
+        return r
+
 
     def __add__(self, value):
         npow = max(self.npow, value.npow)
@@ -107,7 +118,7 @@ class ArrayPoly:
         qcl = []
         si = self.npow - value.npow
         sf = self.npow - 1
-        for p in range(self.npow - value.npow + 1):
+        for _ in range(self.npow - value.npow + 1):
             qc = rca[sf] / vca[-1]
             rca[si : sf + 1] -= qc * vca
             si -= 1

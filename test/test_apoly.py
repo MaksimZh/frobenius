@@ -282,6 +282,8 @@ class TestDivMod(unittest.TestCase):
         q, r = divmod(a, b)
         x = np.arange(4)
         np.testing.assert_allclose(a(x), (b * q + r)(x))
+        np.testing.assert_allclose((a // b)(x), q(x))
+        np.testing.assert_allclose((a % b)(x), r(x))
 
     def test_3d(self):
         a = ArrayPoly(genCoefs(5, 2, 3, 4))
@@ -289,6 +291,9 @@ class TestDivMod(unittest.TestCase):
         q, r = divmod(a, b)
         x = np.arange(4)
         np.testing.assert_allclose(a(x), (b * q + r)(x))
+        np.testing.assert_allclose((a // b)(x), q(x))
+        np.testing.assert_allclose((a % b)(x), r(x))
+
 
 from frobenius.apoly import _it
 
