@@ -187,45 +187,48 @@ class TestArithmetic(unittest.TestCase):
         np.testing.assert_allclose((a // 3).coefs, a.coefs // 3)
 
     def test_add(self):
+        x = np.arange(4)
         a = ArrayPoly(genCoefs(4, 2, 3))
         b = ArrayPoly(genCoefs(4, 2, 3))
-        np.testing.assert_equal((a + b).coefs, a.coefs + b.coefs)
+        np.testing.assert_equal((a + b)(x), a(x) + b(x))
         b = ArrayPoly(genCoefs(2, 2, 3))
-        cc = a.coefs.copy()
-        cc[:2] += b.coefs
-        np.testing.assert_equal((a + b).coefs, cc)
+        np.testing.assert_equal((a + b)(x), a(x) + b(x))
         b = ArrayPoly(genCoefs(6, 2, 3))
-        cc = b.coefs.copy()
-        cc[:4] += a.coefs
-        np.testing.assert_equal((a + b).coefs, cc)
+        np.testing.assert_equal((a + b)(x), a(x) + b(x))
         b = ArrayPoly(genCoefs(4, 2, 1))
-        np.testing.assert_equal((a + b).coefs, a.coefs + b.coefs)
+        np.testing.assert_equal((a + b)(x), a(x) + b(x))
+        a = ArrayPoly(genCoefs(3, 5, 2, 1))
+        b = ArrayPoly(genCoefs(2, 5, 2, 3))
+        np.testing.assert_equal((a + b)(x), a(x) + b(x))
 
     def test_sub(self):
+        x = np.arange(4)
         a = ArrayPoly(genCoefs(4, 2, 3))
         b = ArrayPoly(genCoefs(4, 2, 3))
-        np.testing.assert_equal((a - b).coefs, a.coefs - b.coefs)
+        np.testing.assert_equal((a - b)(x), a(x) - b(x))
         b = ArrayPoly(genCoefs(2, 2, 3))
-        cc = a.coefs.copy()
-        cc[:2] -= b.coefs
-        np.testing.assert_equal((a - b).coefs, cc)
+        np.testing.assert_equal((a - b)(x), a(x) - b(x))
         b = ArrayPoly(genCoefs(6, 2, 3))
-        cc = -b.coefs
-        cc[:4] += a.coefs
-        np.testing.assert_equal((a - b).coefs, cc)
+        np.testing.assert_equal((a - b)(x), a(x) - b(x))
         b = ArrayPoly(genCoefs(4, 2, 1))
-        np.testing.assert_equal((a - b).coefs, a.coefs - b.coefs)
+        np.testing.assert_equal((a - b)(x), a(x) - b(x))
+        a = ArrayPoly(genCoefs(3, 5, 2, 1))
+        b = ArrayPoly(genCoefs(2, 5, 2, 3))
+        np.testing.assert_equal((a - b)(x), a(x) - b(x))
 
     def test_mul(self):
-        x = np.arange(5)
+        x = np.arange(4)
         a = ArrayPoly(genCoefs(4, 2, 3))
         b = ArrayPoly(genCoefs(2, 2, 3))
         np.testing.assert_equal((a * b)(x), a(x) * b(x))
         b = ArrayPoly(genCoefs(2, 2, 1))
         np.testing.assert_equal((a * b)(x), a(x) * b(x))
+        a = ArrayPoly(genCoefs(3, 5, 2, 1))
+        b = ArrayPoly(genCoefs(2, 5, 2, 3))
+        np.testing.assert_equal((a * b)(x), a(x) * b(x))
 
     def test_matmul(self):
-        x = np.arange(5)
+        x = np.arange(4)
         a = ArrayPoly(genCoefs(4, 5, 2, 3))
         b = ArrayPoly(genCoefs(2, 5, 3, 4))
         np.testing.assert_equal((a @ b)(x), a(x) @ b(x))
@@ -233,7 +236,7 @@ class TestArithmetic(unittest.TestCase):
         np.testing.assert_equal((a @ b)(x), a(x) @ b(x))
 
     def test_pow(self):
-        x = np.arange(5)
+        x = np.arange(4)
         a = ArrayPoly(genCoefs(4, 2, 3))
         np.testing.assert_equal((a ** 2)(x), a(x) ** 2)
 
@@ -243,8 +246,30 @@ class TestSubst(unittest.TestCase):
     def test_0d_0d(self):
         a = ArrayPoly(genCoefs(3))
         b = ArrayPoly(genCoefs(2))
-        x = np.arange(5)
+        x = np.arange(4)
         np.testing.assert_equal(a(b)(x), a(b(x)))
+
+    def test_1d_0d(self):
+        a = ArrayPoly(genCoefs(3, 5))
+        b = ArrayPoly(genCoefs(2))
+        x = np.arange(4)
+        np.testing.assert_equal(a(b)(x), a(b(x)))
+
+    def test_1d_1d(self):
+        a = ArrayPoly(genCoefs(3, 4))
+        b = ArrayPoly(genCoefs(2, 4))
+        x = np.arange(4)
+        bx = b(x)
+        np.testing.assert_equal(a(b)(x),
+            a.coefs[0] + a.coefs[1] * bx + a.coefs[2] * bx ** 2)
+
+    def test_2d_3d(self):
+        a = ArrayPoly(genCoefs(3, 5, 2, 1))
+        b = ArrayPoly(genCoefs(2, 5, 2, 3))
+        x = np.arange(4)
+        bx = b(x)
+        np.testing.assert_equal(a(b)(x),
+            a.coefs[0] + a.coefs[1] * bx + a.coefs[2] * bx ** 2)
 
 
 from frobenius.apoly import _it

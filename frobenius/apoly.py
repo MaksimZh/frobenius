@@ -46,7 +46,8 @@ class ArrayPoly:
         if not isinstance(value, ArrayPoly):
             return ArrayPoly(self.coefs * value)
         npow = self.npow + value.npow - 1
-        coefs = np.zeros((npow, *self.shape),
+        bc = np.broadcast(self.coefs[0], value.coefs[0])
+        coefs = np.zeros((npow, *bc.shape),
             dtype=np.result_type(self.coefs, value.coefs))
         for s in range(self.npow):
             coefs[s : s + value.npow] += self.coefs[s : s + 1] * value.coefs
@@ -63,7 +64,8 @@ class ArrayPoly:
 
     def __add__(self, value):
         npow = max(self.npow, value.npow)
-        coefs = np.zeros((npow, *self.shape),
+        bc = np.broadcast(self.coefs[0], value.coefs[0])
+        coefs = np.zeros((npow, *bc.shape),
             dtype=np.result_type(self.coefs, value.coefs))
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] += value.coefs
@@ -71,7 +73,8 @@ class ArrayPoly:
 
     def __sub__(self, value):
         npow = max(self.npow, value.npow)
-        coefs = np.zeros((npow, *self.shape),
+        bc = np.broadcast(self.coefs[0], value.coefs[0])
+        coefs = np.zeros((npow, *bc.shape),
             dtype=np.result_type(self.coefs, value.coefs))
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] -= value.coefs
@@ -117,7 +120,9 @@ class ArrayPoly:
             axis=0)
 
     def __substPoly(self, x):
-        result = ArrayPoly(np.zeros_like(self.coefs[:1] * x.coefs[:1]))
+        if x.ndim == 0:
+            x = ArrayPoly(x.coefs[_it((), self.ndim)])
+        result = ArrayPoly(np.zeros_like([self.coefs[0] * x.coefs[0]]))
         for p in range(self.npow):
             s = ArrayPoly(self.coefs[p : p + 1])
             result += s * x ** p
