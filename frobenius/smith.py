@@ -8,34 +8,36 @@ def smith(a, p):
     k = 0
     i = 0
     x = ArrayPoly(np.eye(n)[np.newaxis])
-    y = ArrayPoly(np.zeros_like(x.coefs))
+    z = ArrayPoly(np.zeros_like(x.coefs))
     pp = [ArrayPoly(np.array([1]))]
     kappa = np.zeros(n, dtype=int)
     while i < n:
         for j in range(0, n - i):
-            y[:, i] = a @ x[:, i : i + 1] // pp[k] % p
-            c = expand(y[:, i], y[:, :i])
+            z[:, i : i + 1] = a @ x[:, i : i + 1] // pp[k] % p
+            c = expandLast(z[:, : i + 1])
             if c is None:
                 kappa[i] = k
                 i += 1
             else:
                 for m in range(0, i):
                     x[:, i] = x[:, i] - pp[k - kappa[m]] * c[m] * x[:, m]
-                x.coefs = np.roll(x.coefs, shift=-1, axis=-1)
+                x.coefs[..., i:] = np.roll(x.coefs[..., i:], shift=-1, axis=-1)
         k += 1
         pp.append(pp[-1] * p)
+    y = a @ x
+    for i in range(n):
+        y[:, i : i + 1] //= pp[kappa[i]]
+    while np.sum(np.abs(y.coefs[-1])) < 1e-12:
+        y.coefs = y.coefs[:-1]
     return x, y, kappa
 
 
-def expand(v, basis):
-    npow = max(v.npow, basis.npow)
-    vc = np.zeros((npow, *v.shape), dtype=complex)
-    vc[:v.npow] = v.coefs
-    bc = np.zeros((npow, *basis.shape), dtype=complex)
-    bc[:basis.npow] = basis.coefs
-    c = np.sum(np.conj(bc) * vc[..., np.newaxis], axis=(0, 1))
-    rc = vc - np.sum(bc * c, axis=-1)
-    if np.sum(np.abs(rc)) < 1e-12:
-        return c
-    else:
+def expandLast(z):
+    a = z.coefs.reshape(-1, z.shape[-1])
+    u, s, vh = np.linalg.svd(a)
+    if s[-1] > 1e-12:
         return None
+    else:
+        z = np.conj(vh[-1])
+    c = -z[:-1] / z[-1]
+    return c
