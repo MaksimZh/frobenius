@@ -120,6 +120,7 @@ class TestIndex(unittest.TestCase):
         cb = genCoefs(2, 2)
         cc = ca.copy()
         cc[:2, 1:3] = cb
+        cc[2:, 1:3] = 0
         a[1:3] = ArrayPoly(cb)
         np.testing.assert_equal(a.coefs, cc)
 
@@ -159,6 +160,7 @@ class TestIndex(unittest.TestCase):
         cb = genCoefs(2, 2, 4)
         cc = ca.copy()
         cc[:2, 2:4, 1:5] = cb
+        cc[2:, 2:4, 1:5] = 0
         a[2:4, 1:5] = ArrayPoly(cb)
         np.testing.assert_equal(a.coefs, cc)
 

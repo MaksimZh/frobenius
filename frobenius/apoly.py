@@ -35,6 +35,8 @@ class ArrayPoly:
             coefs[:self.npow] = self.coefs
             self.coefs = coefs
         self.coefs[self.__coefsIndex(index)][:value.npow] = value.coefs
+        if value.npow < self.npow:
+            self.coefs[self.__coefsIndex(index)][value.npow:] = 0
 
     def __pos__(self):
         return self

@@ -26,7 +26,7 @@ def smith(a, p):
         pp.append(pp[-1] * p)
     y = a @ x
     for i in range(n):
-        y[:, i : i + 1] //= pp[kappa[i]]
+        y[:, i] //= pp[kappa[i]]
     while np.sum(np.abs(y.coefs[-1])) < 1e-12:
         y.coefs = y.coefs[:-1]
     return x, y, kappa
