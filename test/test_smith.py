@@ -24,7 +24,6 @@ class Test(unittest.TestCase):
         self.check(a, p2, x, y, kappa)
 
     def test_Yu(self):
-        np.set_printoptions(linewidth=150)
         a = ArrayPoly(np.array([
             [[4, 6], [-4, -2]],
             [[0, -6], [4, 4]],
@@ -46,5 +45,34 @@ class Test(unittest.TestCase):
         x, y, kappa = smith(a, p)
         self.check(a, p, x, y, kappa)
         p = ArrayPoly(np.array([-1j*np.sqrt(2), 1]))
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
+
+    def test_Barkatou(self):
+        a = ArrayPoly(np.array([
+            [
+                [0, 2, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ],
+            [
+                [-6, -1, 0],
+                [-4, 0, 0],
+                [-1, 0, 0],
+            ],
+            [
+                [3, 0, 0],
+                [4, 0, 0],
+                [0, 0, 1],
+            ],
+            [
+                [0, 0, 0],
+                [-1, 0, 0],
+                [0, 0, 0],
+            ]]))
+        p = ArrayPoly(np.array([0, 1]))
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
+        p = ArrayPoly(np.array([2, -1]))
         x, y, kappa = smith(a, p)
         self.check(a, p, x, y, kappa)
