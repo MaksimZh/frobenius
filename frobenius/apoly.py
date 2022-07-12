@@ -4,7 +4,12 @@ import numpy as np
 class ArrayPoly:
 
     def __init__(self, coefs):
+        if not isinstance(coefs, np.ndarray):
+            coefs = np.array(coefs)
+        if coefs.shape == ():
+            coefs = coefs.reshape(1)
         self.coefs = coefs
+
 
     @property
     def ndim(self):
@@ -158,6 +163,13 @@ class ArrayPoly:
             s = ArrayPoly(self.coefs[p : p + 1])
             result += s * x ** p
         return result
+
+
+def trim(a, atol=1e-12):
+    coefs = a.coefs
+    while np.max(np.abs(coefs[-1])) < atol:
+        coefs = coefs[:-1]
+    return ArrayPoly(coefs)
 
 
 def _it(*args):

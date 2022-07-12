@@ -1,6 +1,6 @@
 import numpy as np
 
-from frobenius.apoly import ArrayPoly
+from frobenius.apoly import ArrayPoly, trim
 
 
 def smith(a, p):
@@ -9,7 +9,7 @@ def smith(a, p):
     i = 0
     x = ArrayPoly(np.eye(n, dtype=np.common_type(a.coefs, p.coefs))[np.newaxis])
     z = ArrayPoly(np.zeros_like(x.coefs))
-    pp = [ArrayPoly(np.array([1]))]
+    pp = [ArrayPoly(1)]
     kappa = np.zeros(n, dtype=int)
     while i < n:
         for j in range(0, n - i):
@@ -27,11 +27,7 @@ def smith(a, p):
     y = a @ x
     for i in range(n):
         y[:, i] //= pp[kappa[i]]
-    while np.sum(np.abs(x.coefs[-1])) < 1e-12:
-        x.coefs = x.coefs[:-1]
-    while np.sum(np.abs(y.coefs[-1])) < 1e-12:
-        y.coefs = y.coefs[:-1]
-    return x, y, kappa
+    return trim(x), trim(y), kappa
 
 
 def expandLast(z):

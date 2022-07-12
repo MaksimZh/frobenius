@@ -96,6 +96,24 @@ class TestBasic(unittest.TestCase):
             coefs[2, np.newaxis, np.newaxis] * xa**2)
 
 
+class TestCoefs(unittest.TestCase):
+
+    def test_list(self):
+        for c in [
+            [1, 2, 3],
+            [[1, 2, 3], [4, 5, 6]],
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        ]:
+            a = ArrayPoly(c)
+            self.assertIsInstance(a.coefs, np.ndarray)
+            np.testing.assert_equal(a.coefs, c)
+
+    def test_scalar(self):
+        a = ArrayPoly(42)
+        self.assertEqual(a.coefs.shape, (1,))
+        np.testing.assert_equal(a.coefs, [42])
+
+
 class TestIndex(unittest.TestCase):
 
     def test_1d(self):
@@ -295,6 +313,27 @@ class TestDivMod(unittest.TestCase):
         np.testing.assert_allclose(a(x), (b * q + r)(x))
         np.testing.assert_allclose((a // b)(x), q(x))
         np.testing.assert_allclose((a % b)(x), r(x))
+
+
+from frobenius.apoly import trim
+
+class TestTrim(unittest.TestCase):
+
+    def test_none(self):
+        a = ArrayPoly([1, 2, 3])
+        np.testing.assert_allclose(trim(a).coefs, a.coefs)
+        np.testing.assert_allclose(trim(a, 1).coefs, a.coefs)
+        a = ArrayPoly([[1, 2], [0, 4], [5, 0]])
+        np.testing.assert_allclose(trim(a).coefs, a.coefs)
+        np.testing.assert_allclose(trim(a, 1).coefs, a.coefs)
+
+    def test_some(self):
+        a = ArrayPoly([1, 2, 3, 0.5, 0, 0])
+        np.testing.assert_allclose(trim(a).coefs, a.coefs[:4])
+        np.testing.assert_allclose(trim(a, 1).coefs, a.coefs[:3])
+        a = ArrayPoly([[1, 2], [0, 4], [0.5, 0], [0, 0]])
+        np.testing.assert_allclose(trim(a).coefs, a.coefs[:3])
+        np.testing.assert_allclose(trim(a, 1).coefs, a.coefs[:2])
 
 
 from frobenius.apoly import _it
