@@ -3,7 +3,7 @@ import numpy as np
 from frobenius.apoly import ArrayPoly, trim
 
 
-def smith(a, p):
+def smith(a, p, atol=1e-12):
     n = a.shape[0]
     k = 0
     i = 0
@@ -14,7 +14,7 @@ def smith(a, p):
     while i < n:
         for j in range(0, n - i):
             z[:, i : i + 1] = a @ x[:, i : i + 1] // pp[k] % p
-            c = expandLast(z[:, : i + 1])
+            c = expandLast(z[:, : i + 1], atol)
             if c is None:
                 kappa[i] = k
                 i += 1
@@ -30,10 +30,10 @@ def smith(a, p):
     return trim(x), trim(y), kappa
 
 
-def expandLast(z):
+def expandLast(z, atol=1e-12):
     a = z.coefs.reshape(-1, z.shape[-1])
     u, s, vh = np.linalg.svd(a)
-    if s[-1] > 1e-12:
+    if s[-1] > atol:
         return None
     else:
         z = np.conj(vh[-1])
