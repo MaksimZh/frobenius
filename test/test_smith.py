@@ -23,7 +23,7 @@ class Test(unittest.TestCase):
         x, y, kappa = smith(a, p2)
         self.check(a, p2, x, y, kappa)
 
-    def test2(self):
+    def test_Yu(self):
         np.set_printoptions(linewidth=150)
         a = ArrayPoly(np.array([
             [[4, 6], [-4, -2]],
@@ -36,6 +36,15 @@ class Test(unittest.TestCase):
             [[0, 0], [0, 1]],
             [[0, 1], [0, 0]],
             ]))
-        p1 = ArrayPoly(np.array([-1, 1]))
-        x, y, kappa = smith(a, p1)
-        self.check(a, p1, x, y, kappa)
+        p = ArrayPoly(np.array([-1, 1]))
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
+        p = ArrayPoly(np.array([2, 0, 1]))
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
+        p = ArrayPoly(np.array([1j*np.sqrt(2), 1]))
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
+        p = ArrayPoly(np.array([-1j*np.sqrt(2), 1]))
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)

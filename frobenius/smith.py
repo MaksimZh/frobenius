@@ -7,7 +7,7 @@ def smith(a, p):
     n = a.shape[0]
     k = 0
     i = 0
-    x = ArrayPoly(np.eye(n)[np.newaxis])
+    x = ArrayPoly(np.eye(n, dtype=complex)[np.newaxis])
     z = ArrayPoly(np.zeros_like(x.coefs))
     pp = [ArrayPoly(np.array([1]))]
     kappa = np.zeros(n, dtype=int)
