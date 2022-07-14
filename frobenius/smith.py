@@ -27,7 +27,7 @@ def smith(a, p, atol=1e-12):
     y = a @ x
     for i in range(n):
         y[:, i] //= pp[kappa[i]]
-    return trim(x), trim(y), kappa
+    return trim(x, atol), trim(y, atol), kappa
 
 
 def expandLast(z, atol=1e-12):
