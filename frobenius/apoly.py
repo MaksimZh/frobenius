@@ -23,13 +23,14 @@ class ArrayPoly:
     def shape(self):
         return self.coefs.shape[1:]
 
-    def __call__(self, x):
+    def __call__(self, x, deriv=0):
         if isinstance(x, np.ndarray):
-            return self.__evalArray(x)
+            return self.__evalArray(x, deriv)
         elif isinstance(x, ArrayPoly):
+            assert(deriv == 0)
             return self.__substPoly(x)
         else:
-            return self.__evalScalar(x)
+            return self.__evalScalar(x, deriv)
 
     def __getitem__(self, index):
         return ArrayPoly(self.coefs[self.__coefsIndex(index)])
@@ -141,18 +142,30 @@ class ArrayPoly:
         else:
             return (slice(None), index)
 
-    def __evalScalar(self, x):
+    def __evalScalar(self, x, deriv):
         pows = np.arange(self.npow)
+        factors = np.ones(self.npow)
+        for i in range(deriv):
+            factors[i:] *= pows[: len(pows) - i]
+        pows -= deriv
+        pows[pows < 0] = 0
+        it = _it((), self.ndim)
         return np.sum(
-            self.coefs * x ** pows[_it((), self.ndim)],
+            self.coefs * factors[it] * x ** pows[it],
             axis=0)
 
-    def __evalArray(self, x):
+    def __evalArray(self, x, deriv):
         pows = np.arange(self.npow)
+        factors = np.ones(self.npow)
+        for i in range(deriv):
+            factors[i:] *= pows[: len(pows) - i]
+        pows -= deriv
+        pows[pows < 0] = 0
         return np.sum(
                 self.coefs[_it((), x.ndim, -1)] * \
+                factors[_it((), x.ndim, self.ndim)] * \
                 x[_it(1, -1, self.ndim)] ** \
-                pows[_it((), x.ndim, self.ndim)],
+                    pows[_it((), x.ndim, self.ndim)],
             axis=0)
 
     def __substPoly(self, x):
