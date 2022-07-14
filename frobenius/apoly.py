@@ -172,6 +172,26 @@ def trim(a, atol=1e-12):
     return ArrayPoly(coefs)
 
 
+def det(a):
+    assert(a.ndim >= 2)
+    assert(a.shape[-1] == a.shape[-2])
+    cols = [True] * a.shape[-1]
+
+    def minor(i):
+        if i == a.shape[-2]:
+            return 1
+        factor = 1
+        result = ArrayPoly(0)
+        for j in range(a.shape[-1]):
+            if cols[j]:
+                cols[j] = False
+                result = result + factor * a[..., i, j] * minor(i + 1)
+                factor *= -1
+                cols[j] = True
+        return result
+
+    return minor(0)
+
 def _it(*args):
     result = ()
     for a in args:

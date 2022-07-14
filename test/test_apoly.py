@@ -336,6 +336,43 @@ class TestTrim(unittest.TestCase):
         np.testing.assert_allclose(trim(a, 1).coefs, a.coefs[:2])
 
 
+from frobenius.apoly import det
+
+class TestDet(unittest.TestCase):
+
+    def test_1_1(self):
+        x = np.arange(4)
+        a = ArrayPoly(genCoefs(1, 1, 1))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+        a = ArrayPoly(genCoefs(1, 5, 1, 1))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+
+    def test_1_3(self):
+        x = np.arange(4)
+        a = ArrayPoly(genCoefs(3, 1, 1))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+        a = ArrayPoly(genCoefs(3, 5, 1, 1))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+
+    def test_4_1(self):
+        x = np.arange(4)
+        c = np.arange(4 * 4).reshape(1, 4, 4) + 1
+        a = ArrayPoly(c + 2 * c.transpose(0, 2, 1))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+        c = (np.arange(5 * 4 * 4).reshape(1, 5, 4, 4) + 1) % 7
+        a = ArrayPoly(c + 2 * c.transpose(0, 1, 3, 2))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+
+    def test_4_3(self):
+        x = np.arange(4)
+        c = (np.arange(3 * 4 * 4).reshape(3, 4, 4) + 1) % 7
+        a = ArrayPoly(c + 2 * c.transpose(0, 2, 1))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+        c = (np.arange(3 * 5 * 4 * 4).reshape(3, 5, 4, 4) + 1) % 7
+        a = ArrayPoly(c + 2 * c.transpose(0, 1, 3, 2))
+        np.testing.assert_allclose(det(a)(x), np.linalg.det(a(x)))
+
+
 from frobenius.apoly import _it
 
 class TestIT(unittest.TestCase):
