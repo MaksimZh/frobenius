@@ -22,5 +22,5 @@ class Test(unittest.TestCase):
                 [[0]], # x^1
             ],
         ])
-        s = solve(mxA, min_terms=3)
+        s = solve(mxA, min_terms=4)
         self.assertEqual(len(s), 1)
