@@ -2,6 +2,7 @@ import numpy as np
 
 from frobenius.apoly import ArrayPoly, det
 from frobenius.smith import smith
+from math import factorial
 
 
 def solve(mxA, min_terms=3):
@@ -14,9 +15,11 @@ def solve(mxA, min_terms=3):
     coefsNum = (lam[-1] + min_terms - lam + 0.5).astype(int)
     for n in range(len(mxL), max(coefsNum)):
         mxL.append(ArrayPoly(np.zeros_like(mxA[:1, 0])))
+    result = []
     for j in range(len(lam)):
-        _calcCoefs(mxL, lam[j], coefsNum[j])
-    return lam
+        g = _calcCoefs(mxL, lam[j], coefsNum[j])
+        result.append((lam[j], g))
+    return result
 
 
 def _calcCoefs(mxL, lj, coefsNum):
@@ -32,6 +35,7 @@ def _calcCoefs(mxL, lj, coefsNum):
         mxY.append(y)
         kappa.append(k)
     beta = [k[-1] for k in kappa]
+    beta[0] = 0
     mxXt = [None]
     for n in range(1, coefsNum):
         mxXt.append(ArrayPoly(mxX[n].coefs.copy()))
@@ -40,21 +44,19 @@ def _calcCoefs(mxL, lj, coefsNum):
     mxLt = [[]]
     for n in range(1, coefsNum):
         mxLt.append([])
-        for m in range(n + 1
-        ):
+        for m in range(n + 1):
             factor = lamMinusLj ** (beta[n - 1] - beta[m])
             lamPlusM = ArrayPoly([m, 1])
             mxLt[n].append(factor * mxL[n - m](lamPlusM))
     alpha = sum(beta[1:])
     kernelSize = sum(k > 0 for k in kappa[0])
     jordanChainsLen = kappa[0][-1 - kernelSize :]
-    ct = np.zeros(
-        (kernelSize, coefsNum, alpha + max(jordanChainsLen),
-            mxSize, 1), 
-        dtype=complex)
+    ct = []
     for k in range(kernelSize):
+        ctk = np.zeros((coefsNum, alpha + jordanChainsLen[k], mxSize, 1),
+            dtype=complex)
         for d in range(jordanChainsLen[k]):
-            ct[k, 0, d] = \
+            ctk[0, d] = \
                 mxX[0](lj, deriv=d) @ _ort(mxSize, -1 - kernelSize + k + 1)
         for n in range(1, coefsNum):
             nDeriv = beta[n] + jordanChainsLen[k]
@@ -71,14 +73,29 @@ def _calcCoefs(mxL, lj, coefsNum):
                     factor = 1
                     for s in range(d + 1):
                         sumPrev += \
-                            factor * mxLt[n][m](lj, deriv=d-s) @ ct[k, m, s]
+                            factor * mxLt[n][m](lj, deriv=d-s) @ ctk[m, s]
                         factor *= (d - s) / (s + 1)
                 b[d] = -invY @ (sumDeriv + sumPrev)
                 factor = 1
                 for s in range(d + 1):
-                    ct[k, n, d] = mxXt[n](lj, deriv=d-s) @ b[s]
+                    ctk[n, d] = mxXt[n](lj, deriv=d-s) @ b[s]
                     factor *= (d - s) / (s + 1)
-    print(ct)
+        ct.append(ctk)
+    g = []
+    for k in range(kernelSize):
+        gk = []
+        for q in range(jordanChainsLen[k]):
+            gkq = np.zeros((coefsNum, alpha + q + 1), dtype=complex)
+            for n in range(coefsNum):
+                mMax = beta[n] + q
+                factor = factorial(alpha + q) / factorial(mMax)
+                for m in range(mMax + 1):
+                    gkq[n, m] = factor * ct[k][n, mMax - m]
+                    factor *= (mMax - m) / (m + 1)
+            gk.append(gkq)
+        g.append(gk)
+    return g
+
 
 
 def _ort(n, i):
