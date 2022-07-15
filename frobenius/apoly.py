@@ -180,7 +180,7 @@ class ArrayPoly:
 
 def trim(a, atol=1e-12):
     coefs = a.coefs
-    while np.max(np.abs(coefs[-1])) < atol:
+    while len(coefs) > 1 and np.max(np.abs(coefs[-1])) < atol:
         coefs = coefs[:-1]
     return ArrayPoly(coefs)
 

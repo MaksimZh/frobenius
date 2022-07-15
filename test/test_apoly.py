@@ -408,6 +408,14 @@ class TestTrim(unittest.TestCase):
         np.testing.assert_allclose(trim(a).coefs, a.coefs[:3])
         np.testing.assert_allclose(trim(a, 1).coefs, a.coefs[:2])
 
+    def test_all(self):
+        a = ArrayPoly([0.5, 0, 0])
+        np.testing.assert_allclose(trim(a).coefs, a.coefs[:1])
+        np.testing.assert_allclose(trim(a, 1).coefs, a.coefs[:1])
+        a = ArrayPoly([[0.5, 0], [0, 0]])
+        np.testing.assert_allclose(trim(a).coefs, a.coefs[:1])
+        np.testing.assert_allclose(trim(a, 1).coefs, a.coefs[:1])
+
 
 from frobenius.apoly import det
 
