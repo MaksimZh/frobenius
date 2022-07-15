@@ -31,6 +31,7 @@ class Test(unittest.TestCase):
         g = gj[0][0]
         np.testing.assert_allclose(g, [[1], [a], [a**2 / 2], [a**3 / 6]])
 
+
     def test_2(self):
         # f'' - (a + b) f' + a b f = o
         # or
@@ -81,3 +82,27 @@ class Test(unittest.TestCase):
             [(a**2 + a * b + b**2) / 6],
             [(a**3 + a**2 * b + a * b**2 + b**3) / 24],
             ])
+
+
+    def test_5(self):
+        mxA = np.array([
+            [ # d^0
+                [[-72]], # x^0
+            ],
+            [ # d^1
+                [[156]], # x^0
+            ],
+            [ # d^2
+                [[-134]], # x^0
+            ],
+            [ # d^3
+                [[57]], # x^0
+            ],
+            [ # d^4
+                [[-12]], # x^0
+            ],
+            [ # d^5
+                [[1]], # x^0
+            ],
+        ])
+        #s = solve(mxA, min_terms=4)
