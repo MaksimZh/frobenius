@@ -54,8 +54,8 @@ class ArrayPoly:
         if not isinstance(value, ArrayPoly):
             return ArrayPoly(self.coefs * value)
         npow = self.npow + value.npow - 1
-        bc = np.broadcast(self.coefs[0], value.coefs[0])
-        coefs = np.zeros((npow, *bc.shape),
+        result_shape = np.broadcast(self.coefs[0], value.coefs[0]).shape
+        coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
         for s in range(self.npow):
             coefs[s : s + value.npow] += self.coefs[s : s + 1] * value.coefs
@@ -83,8 +83,8 @@ class ArrayPoly:
 
     def __add__(self, value):
         npow = max(self.npow, value.npow)
-        bc = np.broadcast(self.coefs[0], value.coefs[0])
-        coefs = np.zeros((npow, *bc.shape),
+        result_shape = np.broadcast(self.coefs[0], value.coefs[0]).shape
+        coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] += value.coefs
@@ -92,8 +92,8 @@ class ArrayPoly:
 
     def __sub__(self, value):
         npow = max(self.npow, value.npow)
-        bc = np.broadcast(self.coefs[0], value.coefs[0])
-        coefs = np.zeros((npow, *bc.shape),
+        result_shape = np.broadcast(self.coefs[0], value.coefs[0]).shape
+        coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] -= value.coefs
@@ -103,8 +103,10 @@ class ArrayPoly:
         assert(self.ndim >= 2)
         assert(value.ndim >= 2)
         npow = self.npow + value.npow - 1
-        bc = np.broadcast(self.coefs[0, ..., 0:1], value.coefs[0, ..., 0:1, :])
-        coefs = np.zeros((npow, *bc.shape),
+        result_shape = np.broadcast(
+            self.coefs[0, ..., 0:1],
+            value.coefs[0, ..., 0:1, :]).shape
+        coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
         for s in range(self.npow):
             coefs[s : s + value.npow] += self.coefs[s : s + 1] @ value.coefs
@@ -121,19 +123,19 @@ class ArrayPoly:
     def __divmod__(self, value):
         if value.ndim > 0:
             return NotImplemented
-        rca = self.coefs / np.ones_like(value.coefs[:1])[0]
-        vca = value.coefs[_it((), self.ndim)]
-        qcl = []
+        remainder_poly_coefs = self.coefs / np.ones_like(value.coefs[:1])[0]
+        divisor_poly_coefs = value.coefs[_it((), self.ndim)]
+        quotient_poly_coefs = []
         si = self.npow - value.npow
         sf = self.npow - 1
         for _ in range(self.npow - value.npow + 1):
-            qc = rca[sf] / vca[-1]
-            rca[si : sf + 1] -= qc * vca
+            qc = remainder_poly_coefs[sf] / divisor_poly_coefs[-1]
+            remainder_poly_coefs[si : sf + 1] -= qc * divisor_poly_coefs
             si -= 1
             sf -= 1
-            qcl.append(qc)
-        rem = ArrayPoly(rca[: value.npow - 1])
-        quo = ArrayPoly(np.array(list(reversed(qcl))))
+            quotient_poly_coefs.append(qc)
+        rem = ArrayPoly(remainder_poly_coefs[: value.npow - 1])
+        quo = ArrayPoly(np.array(list(reversed(quotient_poly_coefs))))
         return quo, rem
 
     def __coefsIndex(self, index):
