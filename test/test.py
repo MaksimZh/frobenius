@@ -105,4 +105,4 @@ class Test(unittest.TestCase):
                 [[1]], # x^0
             ],
         ])
-        #s = solve(mxA, min_terms=4)
+        s = solve(mxA, min_terms=4, lambda_roots=[2, 3])

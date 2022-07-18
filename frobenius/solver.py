@@ -5,13 +5,15 @@ from frobenius.smith import smith
 from math import factorial
 
 
-def solve(mxA, min_terms=3, atol=1e-12):
+def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
     assert(mxA.ndim == 4)
     mxL = []
     for m in range(mxA.shape[1]):
         mxL.append(ArrayPoly(mxA[:, m]))
     detL0 = det(mxL[0])
-    lam = np.sort(np.roots(detL0.coefs.reshape(-1)[::-1]))
+    if lambda_roots is None:
+        lambda_roots = np.roots(detL0.coefs.reshape(-1)[::-1])
+    lam = np.sort(np.array(lambda_roots))
     coefsNum = (lam[-1] + min_terms - lam + 0.5).astype(int)
     for n in range(len(mxL), max(coefsNum)):
         mxL.append(ArrayPoly(np.zeros_like(mxA[:1, 0])))
