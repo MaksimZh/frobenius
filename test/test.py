@@ -106,3 +106,62 @@ class Test(unittest.TestCase):
             ],
         ])
         s = solve(mxA, min_terms=4, lambda_roots=[2, 3])
+        self.assertEqual(len(s), 2)
+
+        lj, gj = s[0]
+        self.assertAlmostEqual(lj, 2)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 3)
+        
+        # f = x^2
+        g = gj[0][0]
+        np.testing.assert_allclose(g / max(g[0]),[
+            [1],
+            [0],
+            [0],
+            [0],
+            [0],
+        ])
+        
+        # f = x^2 ln(x)
+        g = gj[0][1]
+        np.testing.assert_allclose(g / max(g[0]),[
+            [0, 1],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+        ])
+
+        # f = x^2 ln^2(x)
+        g = gj[0][2]
+        np.testing.assert_allclose(g / max(g[0]),[
+            [0, 0, 1],
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ])
+
+        lj, gj = s[1]
+        self.assertAlmostEqual(lj, 3)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 2)
+        
+        # f = x^3
+        g = gj[0][0]
+        np.testing.assert_allclose(g / max(g[0]),[
+            [1],
+            [0],
+            [0],
+            [0],
+        ])
+        
+        # f = x^3 ln(x)
+        g = gj[0][1]
+        np.testing.assert_allclose(g / max(g[0]),[
+            [0, 1],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+        ])
