@@ -49,9 +49,10 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     for k in range(kernelSize):
         ctk = np.zeros((coefsNum, alpha + jordanChainsLen[k], mxSize, 1),
             dtype=dtype)
-        for d in range(jordanChainsLen[k]):
-            ctk[0, d] = \
-                mxX[0](lj, deriv=d) @ _ort(mxSize, -1 - kernelSize + k + 1)
+        ctk[0, :jordanChainsLen[k]] = _derivsMatMul(
+            mxX[0], lj,
+            [_ort(mxSize, -1 - kernelSize + k + 1)],
+            jordanChainsLen[k] - 1)
         for n in range(1, coefsNum):
             nDeriv = beta[n] + jordanChainsLen[k]
             b = np.zeros((nDeriv, mxSize, 1), dtype=dtype)
@@ -137,4 +138,16 @@ def _calcLt(mxL, p, beta):
 def _ort(n, i):
     ort = np.zeros(n)
     ort[i] = 1
-    return ort
+    return ort.reshape(-1, 1)
+
+
+def _derivsMatMul(a, x, b, maxDeriv):
+    ax = [a(x, deriv=d) for d in range(maxDeriv + 1)]
+    result = []
+    for d in range(maxDeriv + 1):
+        result.append(ax[d] @ b[0])
+        factor = d
+        for s in range(1, min(d, len(b))):
+            result[-1] += factor * ax[d-s] @ b[s]
+            factor *= (d - s) / (s + 1)
+    return np.array(result)
