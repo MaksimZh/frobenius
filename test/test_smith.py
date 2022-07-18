@@ -76,3 +76,12 @@ class Test(unittest.TestCase):
         p = ArrayPoly([2, -1])
         x, y, kappa = smith(a, p)
         self.check(a, p, x, y, kappa)
+
+    def test2(self):
+        a = ArrayPoly(np.array([-72, 156, -134, 57, -12, 1]).reshape(-1, 1, 1))
+        p = ArrayPoly([-2, 1])
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
+        p = ArrayPoly([-3, 1])
+        x, y, kappa = smith(a, p)
+        self.check(a, p, x, y, kappa)
