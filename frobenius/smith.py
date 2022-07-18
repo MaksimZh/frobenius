@@ -3,31 +3,37 @@ import numpy as np
 from frobenius.apoly import ArrayPoly, trim
 
 
-def smith(a, p, atol=1e-12):
+def smith(a, factor, atol=1e-12):
     n = a.shape[0]
-    k = 0
-    i = 0
-    x = ArrayPoly(np.eye(n, dtype=np.common_type(a.coefs, p.coefs))[np.newaxis])
-    z = ArrayPoly(np.zeros_like(x.coefs))
-    pp = [ArrayPoly(1)]
-    kappa = np.zeros(n, dtype=int)
-    while i < n:
-        for j in range(0, n - i):
-            z[:, i : i + 1] = a @ x[:, i : i + 1] // pp[k] % p
-            c = expandLast(z[:, : i + 1], atol)
-            if c is None:
-                kappa[i] = k
-                i += 1
+    exponent = 0
+    column = 0
+    inv_right_matrix = ArrayPoly(np.eye(n, dtype=np.common_type(a.coefs, factor.coefs))[np.newaxis])
+    remainder_matrix = ArrayPoly(np.zeros_like(inv_right_matrix.coefs))
+    factor_powers = [ArrayPoly(1)]
+    diag_factor_exponents = np.zeros(n, dtype=int)
+    while column < n:
+        for j in range(0, n - column):
+            remainder_matrix[:, column : column + 1] = \
+                a @ inv_right_matrix[:, column : column + 1] // factor_powers[exponent] % factor
+            expansion_coefs = expandLast(remainder_matrix[:, : column + 1], atol)
+            if expansion_coefs is None:
+                diag_factor_exponents[column] = exponent
+                column += 1
             else:
-                for m in range(0, i):
-                    x[:, i] = x[:, i] - pp[k - kappa[m]] * c[m] * x[:, m]
-                x.coefs[..., i:] = np.roll(x.coefs[..., i:], shift=-1, axis=-1)
-        k += 1
-        pp.append(pp[-1] * p)
-    y = a @ x
-    for i in range(n):
-        y[:, i] //= pp[kappa[i]]
-    return trim(x, atol), trim(y, atol), kappa
+                for m in range(0, column):
+                    inv_right_matrix[:, column] = \
+                        inv_right_matrix[:, column] - \
+                        factor_powers[exponent - diag_factor_exponents[m]] * \
+                        expansion_coefs[m] * \
+                        inv_right_matrix[:, m]
+                inv_right_matrix.coefs[..., column:] = \
+                    np.roll(inv_right_matrix.coefs[..., column:], shift=-1, axis=-1)
+        exponent += 1
+        factor_powers.append(factor_powers[-1] * factor)
+    left_matrix = a @ inv_right_matrix
+    for column in range(n):
+        left_matrix[:, column] //= factor_powers[diag_factor_exponents[column]]
+    return trim(inv_right_matrix, atol), trim(left_matrix, atol), diag_factor_exponents
 
 
 def expandLast(z, atol=1e-12):
