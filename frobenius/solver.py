@@ -6,14 +6,8 @@ from math import factorial
 
 
 def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
-    assert(mxA.ndim == 4)
-    mxL = []
-    for m in range(mxA.shape[1]):
-        mxL.append(ArrayPoly(mxA[:, m]))
-    detL0 = det(mxL[0])
-    if lambda_roots is None:
-        lambda_roots = np.roots(detL0.coefs.reshape(-1)[::-1])
-    lam = np.sort(np.array(lambda_roots))
+    mxL = _calcL(mxA)
+    lam = _prepareLambda(mxL[0], lambda_roots=lambda_roots)
     coefsNum = (lam[-1] + min_terms - lam + 0.5).astype(int)
     for n in range(len(mxL), max(coefsNum)):
         mxL.append(ArrayPoly(np.zeros_like(mxA[:1, 0])))
@@ -24,35 +18,31 @@ def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
     return result
 
 
+def _calcL(mxA):
+    assert(mxA.ndim == 4)
+    mxL = []
+    for m in range(mxA.shape[1]):
+        mxL.append(ArrayPoly(mxA[:, m]))
+    return mxL
+
+
+def _prepareLambda(mxL0, lambda_roots=None):
+    if lambda_roots is None:
+        detL0 = det(mxL0)
+        lambda_roots = np.roots(detL0.coefs.reshape(-1)[::-1])
+    lam = np.sort(np.array(lambda_roots))
+    return lam
+
+
 def _calcCoefs(mxL, lj, coefsNum, atol):
     mxSize = mxL[0].shape[0]
     lamMinusLj = ArrayPoly([-lj, 1])
     dtype = np.common_type(mxL[0].coefs, lamMinusLj.coefs)
-    mxX = []
-    mxY = []
-    kappa = []
-    for n in range(coefsNum):
-        lamPlusN = ArrayPoly([n, 1])
-        x, y, k = smith(mxL[0](lamPlusN), lamMinusLj, atol=atol)
-        mxX.append(x)
-        mxY.append(y)
-        kappa.append(k)
-    beta = [0]
-    for n in range(1, coefsNum):
-        beta.append(beta[-1] + kappa[n][-1])
-    alpha = beta[-1]
-    mxXt = [None]
-    for n in range(1, coefsNum):
-        mxXt.append(ArrayPoly(mxX[n].coefs.copy()))
-        for i in range(mxSize):
-            mxXt[n][:, i] *= lamMinusLj ** (kappa[n][-1] - kappa[n][i])
-    mxLt = [[]]
-    for n in range(1, coefsNum):
-        mxLt.append([])
-        for m in range(n):
-            factor = lamMinusLj ** (beta[n - 1] - beta[m])
-            lamPlusM = ArrayPoly([m, 1])
-            mxLt[n].append(trim(factor * mxL[n - m](lamPlusM)))
+    mxX, mxY, kappa = \
+        _calcSmithN(mxL[0], num=coefsNum, p=lamMinusLj, atol=atol)
+    alpha, beta = _calcAlphaBeta(kappa)
+    mxXt = _calcXt(p=lamMinusLj, x=mxX, kappa=kappa)
+    mxLt = _calcLt(mxL=mxL, p=lamMinusLj, beta=beta)
     kernelSize = sum(k > 0 for k in kappa[0])
     jordanChainsLen = kappa[0][-1 - kernelSize :]
     ct = []
@@ -102,6 +92,46 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
         g.append(gk)
     return g
 
+
+def _calcSmithN(a, num, p, atol):
+    mxX = []
+    mxY = []
+    kappa = []
+    for n in range(num):
+        lamPlusN = ArrayPoly([n, 1])
+        x, y, k = smith(a(lamPlusN), p, atol=atol)
+        mxX.append(x)
+        mxY.append(y)
+        kappa.append(k)
+    return mxX, mxY, kappa
+
+
+def _calcAlphaBeta(kappa):
+    beta = [0]
+    for ka in kappa[1:]:
+        beta.append(beta[-1] + ka[-1])
+    alpha = beta[-1]
+    return alpha, beta
+
+
+def _calcXt(p, x, kappa):
+    mxXt = [None]
+    for n in range(1, len(x)):
+        mxXt.append(ArrayPoly(x[n].coefs.copy()))
+        for i in range(len(kappa[n])):
+            mxXt[n][:, i] *= p ** (kappa[n][-1] - kappa[n][i])
+    return mxXt
+
+
+def _calcLt(mxL, p, beta):
+    mxLt = [[]]
+    for n in range(1, len(mxL)):
+        mxLt.append([])
+        for m in range(n):
+            factor = p ** (beta[n - 1] - beta[m])
+            lamPlusM = ArrayPoly([m, 1])
+            mxLt[n].append(trim(factor * mxL[n - m](lamPlusM)))
+    return mxLt
 
 
 def _ort(n, i):
