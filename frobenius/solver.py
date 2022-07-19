@@ -39,7 +39,7 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     lamMinusLj = ArrayPoly([-lj, 1])
     dtype = np.common_type(mxL[0].coefs, lamMinusLj.coefs)
     mxX, mxY, kappa = \
-        _calcSmithN(mxL[0], num=coefsNum, p=lamMinusLj, atol=atol)
+        _calcSmithN(mxL[0], num=coefsNum, factor=lamMinusLj, atol=atol)
     alpha, beta = _calcAlphaBeta(kappa)
     mxXt = _calcXt(p=lamMinusLj, x=mxX, kappa=kappa)
     mxLt = _calcLt(mxL=mxL, p=lamMinusLj, beta=beta)
@@ -49,32 +49,20 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     for k in range(kernelSize):
         ctk = np.zeros((coefsNum, alpha + jordanChainsLen[k], mxSize, 1),
             dtype=dtype)
-        ctk[0, :jordanChainsLen[k]] = _derivsMatMul(
-            mxX[0], lj,
-            [_ort(mxSize, -1 - kernelSize + k + 1)],
-            jordanChainsLen[k] - 1)
+        b = [_ort(mxSize, -1 - kernelSize + k + 1)]
+        for s in range(jordanChainsLen[k]):
+            ctk[0, s] = _derivMatMul(mxX[0], lj, b, deriv=s)
         for n in range(1, coefsNum):
             nDeriv = beta[n] + jordanChainsLen[k]
             b = np.zeros((nDeriv, mxSize, 1), dtype=dtype)
             invY = np.linalg.inv(mxY[n](lj))
             for d in range(nDeriv):
-                sumDeriv = np.zeros_like(b[0])
-                factor = 1
-                for s in range(d):
-                    sumDeriv += factor * mxY[n](lj, deriv=d-s) @ b[s]
-                    factor *= (d - s) / (s + 1)
+                sumDeriv = _derivMatMul(mxY[n], lj, b, deriv=d, last=False)
                 sumPrev = np.zeros_like(b[0])
                 for m in range(n):
-                    factor = 1
-                    for s in range(d + 1):
-                        sumPrev += \
-                            factor * mxLt[n][m](lj, deriv=d-s) @ ctk[m, s]
-                        factor *= (d - s) / (s + 1)
+                    sumPrev += _derivMatMul(mxLt[n][m], lj, ctk[m], deriv=d)
                 b[d] = -invY @ (sumDeriv + sumPrev)
-                factor = 1
-                for s in range(d + 1):
-                    ctk[n, d] = mxXt[n](lj, deriv=d-s) @ b[s]
-                    factor *= (d - s) / (s + 1)
+                ctk[n, d] = _derivMatMul(mxXt[n], lj, b, deriv=d)
         ct.append(ctk)
     g = []
     for k in range(kernelSize):
@@ -94,13 +82,13 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     return g
 
 
-def _calcSmithN(a, num, p, atol):
+def _calcSmithN(a, num, factor, atol):
     mxX = []
     mxY = []
     kappa = []
     for n in range(num):
         lamPlusN = ArrayPoly([n, 1])
-        x, y, k = smith(a(lamPlusN), p, atol=atol)
+        x, y, k = smith(a(lamPlusN), factor, atol=atol)
         mxX.append(x)
         mxY.append(y)
         kappa.append(k)
@@ -141,13 +129,12 @@ def _ort(n, i):
     return ort.reshape(-1, 1)
 
 
-def _derivsMatMul(a, x, b, maxDeriv):
-    ax = [a(x, deriv=d) for d in range(maxDeriv + 1)]
-    result = []
-    for d in range(maxDeriv + 1):
-        result.append(ax[d] @ b[0])
-        factor = d
-        for s in range(1, min(d, len(b))):
-            result[-1] += factor * ax[d-s] @ b[s]
-            factor *= (d - s) / (s + 1)
-    return np.array(result)
+def _derivMatMul(a, x, b, deriv, last=True):
+    result = a(x, deriv=deriv) @ b[0]
+    factor = deriv
+    for t in range(1, min(deriv + 1, len(b) - 1)):
+        result += factor * a(x, deriv=deriv-t) @ b[t]
+        factor *= (deriv - t) / (t + 1)
+    if last and len(b) > deriv:
+        result += factor * a(x) @ b[deriv]
+    return result
