@@ -49,20 +49,13 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     for k in range(kernelSize):
         ctk = np.zeros((coefsNum, alpha + jordanChainsLen[k], mxSize, 1),
             dtype=dtype)
-        b = [_ort(mxSize, -1 - kernelSize + k + 1)]
-        for s in range(jordanChainsLen[k]):
-            ctk[0, s] = _derivMatMul(mxX[0], lj, b, deriv=s)
-        for n in range(1, coefsNum):
+        for n in range(coefsNum):
             nDeriv = beta[n] + jordanChainsLen[k]
-            b = np.zeros((nDeriv, mxSize, 1), dtype=dtype)
-            invY = np.linalg.inv(mxY[n](lj))
-            for d in range(nDeriv):
-                sumDeriv = _derivMatMul(mxY[n], lj, b, deriv=d, last=False)
-                sumPrev = sum(
-                    _derivMatMul(mxLt[n][m], lj, ctk[m], deriv=d) \
-                    for m in range(n))
-                b[d] = -invY @ (sumDeriv + sumPrev)
-                ctk[n, d] = _derivMatMul(mxXt[n], lj, b, deriv=d)
+            if n == 0:
+                b = [_ort(mxSize, -1 - kernelSize + k + 1)]
+            else:
+                b = _calcB(mxY[n], mxLt[n], lj, ctk[:n, :nDeriv])
+            ctk[n, :nDeriv] = _calcCt(mxXt[n], lj, b, nDeriv)
         ct.append(ctk)
     g = []
     for k in range(kernelSize):
@@ -104,7 +97,7 @@ def _calcAlphaBeta(kappa):
 
 
 def _calcXt(p, x, kappa):
-    mxXt = [None]
+    mxXt = [x[0]]
     for n in range(1, len(x)):
         mxXt.append(ArrayPoly(x[n].coefs.copy()))
         for i in range(len(kappa[n])):
@@ -127,6 +120,26 @@ def _ort(n, i):
     ort = np.zeros(n)
     ort[i] = 1
     return ort.reshape(-1, 1)
+
+
+def _calcCt(x, lj, b, nTerms):
+    result = []
+    for s in range(nTerms):
+        result.append(_derivMatMul(x, lj, b, deriv=s))
+    return np.array(result)
+
+
+def _calcB(mxY, mxLt, lj, ct):
+    b = []
+    invY = np.linalg.inv(mxY(lj))
+    for t in range(ct.shape[1]):
+        right = sum(
+            _derivMatMul(mxLt[m], lj, ct[m], deriv=t) \
+            for m in range(ct.shape[0]))
+        if len(b) > 0:
+            right += _derivMatMul(mxY, lj, b, deriv=t, last=False)
+        b.append(-invY @ right)
+    return b
 
 
 def _derivMatMul(a, x, b, deriv, last=True):
