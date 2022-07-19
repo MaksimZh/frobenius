@@ -58,9 +58,9 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
             invY = np.linalg.inv(mxY[n](lj))
             for d in range(nDeriv):
                 sumDeriv = _derivMatMul(mxY[n], lj, b, deriv=d, last=False)
-                sumPrev = np.zeros_like(b[0])
-                for m in range(n):
-                    sumPrev += _derivMatMul(mxLt[n][m], lj, ctk[m], deriv=d)
+                sumPrev = sum(
+                    _derivMatMul(mxLt[n][m], lj, ctk[m], deriv=d) \
+                    for m in range(n))
                 b[d] = -invY @ (sumDeriv + sumPrev)
                 ctk[n, d] = _derivMatMul(mxXt[n], lj, b, deriv=d)
         ct.append(ctk)
@@ -131,8 +131,10 @@ def _ort(n, i):
 
 def _derivMatMul(a, x, b, deriv, last=True):
     result = a(x, deriv=deriv) @ b[0]
+    if deriv == 0 and not last:
+        return 0 * result
     factor = deriv
-    for t in range(1, min(deriv + 1, len(b) - 1)):
+    for t in range(1, min(deriv, len(b))):
         result += factor * a(x, deriv=deriv-t) @ b[t]
         factor *= (deriv - t) / (t + 1)
     if last and len(b) > deriv:
