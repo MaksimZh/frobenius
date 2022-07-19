@@ -146,10 +146,10 @@ def _derivMatMul(a, x, b, deriv, last=True):
     result = a(x, deriv=deriv) @ b[0]
     if deriv == 0 and not last:
         return 0 * result
-    factor = deriv
+    binom_coef = deriv
     for t in range(1, min(deriv, len(b))):
-        result += factor * a(x, deriv=deriv-t) @ b[t]
-        factor *= (deriv - t) / (t + 1)
+        result += binom_coef * a(x, deriv=deriv-t) @ b[t]
+        binom_coef *= (deriv - t) / (t + 1)
     if last and len(b) > deriv:
-        result += factor * a(x) @ b[deriv]
+        result += binom_coef * a(x) @ b[deriv]
     return result
