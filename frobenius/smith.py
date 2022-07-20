@@ -36,12 +36,12 @@ def smith(a, factor, atol=1e-12):
     return trim(inv_right_matrix, atol), trim(left_matrix, atol), diag_factor_exponents
 
 
-def expandLast(z, atol=1e-12):
-    a = z.coefs.reshape(-1, z.shape[-1])
-    u, s, vh = np.linalg.svd(a)
-    if s[-1] > atol:
+def expandLast(matrix_poly, atol=1e-12):
+    coef_columns = matrix_poly.coefs.reshape(-1, matrix_poly.shape[-1])
+    u, singular_values, inv_right_matrix = np.linalg.svd(coef_columns)
+    if singular_values[-1] > atol:
         return None
     else:
-        z = np.conj(vh[-1])
-    c = -z[:-1] / z[-1]
-    return c
+        matrix_poly = np.conj(inv_right_matrix[-1])
+    coef_columns = -matrix_poly[:-1] / matrix_poly[-1]
+    return coef_columns
