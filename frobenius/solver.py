@@ -131,14 +131,14 @@ def _calcCt(x, lj, b, nTerms):
 
 def _calcB(mxY, mxLt, lj, ct):
     b = []
-    invY = np.linalg.inv(mxY(lj))
+    inv_left_matrix = np.linalg.inv(mxY(lj))
     for t in range(ct.shape[1]):
-        right = sum(
+        right_part = sum(
             _derivMatMul(mxLt[m], lj, ct[m], deriv=t) \
             for m in range(ct.shape[0]))
         if len(b) > 0:
-            right += _derivMatMul(mxY, lj, b, deriv=t, drop_last=True)
-        b.append(-invY @ right)
+            right_part += _derivMatMul(mxY, lj, b, deriv=t, drop_last=True)
+        b.append(-inv_left_matrix @ right_part)
     return b
 
 

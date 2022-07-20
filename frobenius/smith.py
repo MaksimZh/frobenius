@@ -4,15 +4,15 @@ from frobenius.apoly import ArrayPoly, trim
 
 
 def smith(a, factor, atol=1e-12):
-    n = a.shape[0]
+    size = a.shape[0]
     exponent = 0
     column = 0
-    inv_right_matrix = ArrayPoly(np.eye(n, dtype=np.common_type(a.coefs, factor.coefs))[np.newaxis])
+    inv_right_matrix = ArrayPoly(np.eye(size, dtype=np.common_type(a.coefs, factor.coefs))[np.newaxis])
     remainder_matrix = ArrayPoly(np.zeros_like(inv_right_matrix.coefs))
     factor_powers = [ArrayPoly(1)]
-    diag_factor_exponents = np.zeros(n, dtype=int)
-    while column < n:
-        for j in range(0, n - column):
+    diag_factor_exponents = np.zeros(size, dtype=int)
+    while column < size:
+        for j in range(0, size - column):
             remainder_matrix[:, column : column + 1] = \
                 a @ inv_right_matrix[:, column : column + 1] // factor_powers[exponent] % factor
             expansion_coefs = expandLast(remainder_matrix[:, : column + 1], atol)
@@ -31,7 +31,7 @@ def smith(a, factor, atol=1e-12):
         exponent += 1
         factor_powers.append(factor_powers[-1] * factor)
     left_matrix = a @ inv_right_matrix
-    for column in range(n):
+    for column in range(size):
         left_matrix[:, column] //= factor_powers[diag_factor_exponents[column]]
     return trim(inv_right_matrix, atol), trim(left_matrix, atol), diag_factor_exponents
 
