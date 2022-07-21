@@ -115,10 +115,10 @@ class ArrayPoly:
     def __pow__(self, value):
         if type(value) != int:
             return NotImplemented
-        result = ArrayPoly(np.ones_like(self.coefs[:1]))
+        poly_power = ArrayPoly(np.ones_like(self.coefs[:1]))
         for i in range(value):
-            result *= self
-        return result
+            poly_power *= self
+        return poly_power
 
     def __divmod__(self, value):
         if value.ndim > 0:

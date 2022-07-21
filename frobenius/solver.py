@@ -11,11 +11,11 @@ def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
     coefsNum = (lam[-1] + min_terms - lam + 0.5).astype(int)
     for n in range(len(mxL), max(coefsNum)):
         mxL.append(ArrayPoly(np.zeros_like(mxA[:1, 0])))
-    result = []
+    solutions = []
     for j in range(len(lam)):
         g = _calcCoefs(mxL, lam[j], coefsNum[j], atol)
-        result.append((lam[j], g))
-    return result
+        solutions.append((lam[j], g))
+    return solutions
 
 
 def _calcL(mxA):

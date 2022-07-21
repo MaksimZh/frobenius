@@ -165,5 +165,3 @@ class Test(unittest.TestCase):
             [0, 0],
             [0, 0],
         ])
-
-Test().test_2()
