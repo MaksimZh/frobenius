@@ -137,19 +137,15 @@ def _calcB(mxY, mxLt, lj, ct):
             _derivMatMul(mxLt[m], lj, ct[m], deriv=t) \
             for m in range(ct.shape[0]))
         if len(b) > 0:
-            right_part += _derivMatMul(mxY, lj, b, deriv=t, drop_last=True)
+            right_part += _derivMatMul(mxY, lj, b, deriv=t)
         b.append(-inv_left_matrix @ right_part)
     return b
 
 
-def _derivMatMul(a, x, b, deriv, drop_last=False):
-    result = a(x, deriv=deriv) @ b[0]
-    if deriv == 0 and drop_last:
-        return 0 * result
-    binom_coef = deriv
-    for t in range(1, min(deriv, len(b))):
-        result += binom_coef * a(x, deriv=deriv-t) @ b[t]
+def _derivMatMul(a, x, b, deriv):
+    terms = []
+    binom_coef = 1
+    for t in range(0, min(deriv + 1, len(b))):
+        terms.append(binom_coef * a(x, deriv=deriv-t) @ b[t])
         binom_coef *= (deriv - t) / (t + 1)
-    if not drop_last and len(b) > deriv:
-        result += binom_coef * a(x) @ b[deriv]
-    return result
+    return sum(terms)

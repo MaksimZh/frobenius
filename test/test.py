@@ -176,7 +176,7 @@ class TestSystem(unittest.TestCase):
 
     def test_bessel_1(self):
         # nth Bessel equation converted to a system of two 1st order ODEs
-        # f = (y, y'/x)
+        # f = (y, x * y')
         n = 2
         ode_coefs_theta = np.array([
             [ # theta^0
@@ -216,12 +216,12 @@ class TestSystem(unittest.TestCase):
         self.assertEqual(len(gj), 1)
         self.assertEqual(len(gj[0]), 1)
         g = gj[0][0]
-        print(g)
+        #print(g * -2)
 
     
     def test_spherical_bessel_1(self):
         # nth spherical Bessel equation converted to a system of two 1st order ODEs
-        # f = (y, y'*x)
+        # f = (y, x * y')
         n = 2
         ode_coefs_theta = np.array([
             [ # theta^0
