@@ -6,7 +6,7 @@ from math import factorial
 
 
 def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
-    mxL = _calcL(mxA)
+    mxL = _calcL(mxA, atol)
     lam = _prepareLambda(mxL[0], lambda_roots=lambda_roots)
     coefsNum = (lam[-1] + min_terms - lam + 0.5).astype(int)
     for n in range(len(mxL), max(coefsNum)):
@@ -18,11 +18,11 @@ def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
     return solutions
 
 
-def _calcL(mxA):
+def _calcL(mxA, atol):
     assert(mxA.ndim == 4)
     mxL = []
     for m in range(mxA.shape[1]):
-        mxL.append(ArrayPoly(mxA[:, m]))
+        mxL.append(trim(ArrayPoly(mxA[:, m]), atol=atol))
     return mxL
 
 
@@ -44,7 +44,7 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     mxXt = _calcXt(p=lamMinusLj, x=mxX, kappa=kappa)
     mxLt = _calcLt(mxL=mxL, p=lamMinusLj, beta=beta)
     kernelSize = sum(k > 0 for k in kappa[0])
-    jordanChainsLen = kappa[0][-1 - kernelSize :]
+    jordanChainsLen = kappa[0][-kernelSize:]
     ct = []
     for k in range(kernelSize):
         ctk = np.zeros((coefsNum, alpha + jordanChainsLen[k], mxSize, 1),
@@ -61,14 +61,14 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     for k in range(kernelSize):
         gk = []
         for q in range(jordanChainsLen[k]):
-            gkq = np.zeros((coefsNum, alpha + q + 1), dtype=complex)
+            gkq = np.zeros((coefsNum, alpha + q + 1, mxSize, 1), dtype=complex)
             for n in range(coefsNum):
                 mMax = beta[n] + q
                 factor = factorial(alpha + q) / factorial(mMax)
                 for m in range(mMax + 1):
                     gkq[n, m] = factor * ct[k][n, mMax - m]
                     factor *= (mMax - m) / (m + 1)
-            while gkq.shape[1] > 1 and max(np.abs(gkq[:, -1])) < atol:
+            while gkq.shape[1] > 1 and np.max(np.abs(gkq[:, -1])) < atol:
                 gkq = gkq[:, :-1]
             gk.append(gkq)
         g.append(gk)
@@ -107,7 +107,7 @@ def _calcXt(p, x, kappa):
 
 def _calcLt(mxL, p, beta):
     mxLt = [[]]
-    for n in range(1, len(mxL)):
+    for n in range(1, len(beta)):
         mxLt.append([])
         for m in range(n):
             factor = p ** (beta[n - 1] - beta[m])

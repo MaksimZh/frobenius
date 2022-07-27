@@ -5,7 +5,7 @@ import numpy as np
 from frobenius import solve
 
 
-class Test(unittest.TestCase):
+class TestSingle(unittest.TestCase):
 
     def test_1(self):
         # f' = a f
@@ -29,7 +29,12 @@ class Test(unittest.TestCase):
         self.assertEqual(len(gj), 1)
         self.assertEqual(len(gj[0]), 1)
         g = gj[0][0]
-        np.testing.assert_allclose(g, [[1], [a], [a**2 / 2], [a**3 / 6]])
+        np.testing.assert_allclose(g, [
+            [[[1]]],
+            [[[a]]],
+            [[[a**2 / 2]]],
+            [[[a**3 / 6]]],
+        ])
 
 
     def test_2(self):
@@ -64,12 +69,12 @@ class Test(unittest.TestCase):
         self.assertEqual(len(gj[0]), 1)
         g = gj[0][0]
         np.testing.assert_allclose(g, [
-            [1],
-            [a + b],
-            [(a**2 + a * b + b**2) / 2],
-            [(a**3 + a**2 * b + a * b**2 + b**3) / 6],
-            [(a**4 + a**3 * b + a**2 * b**2 + a * b**3 + b**4) / 24],
-            ])
+            [[[1]]],
+            [[[a + b]]],
+            [[[(a**2 + a * b + b**2) / 2]]],
+            [[[(a**3 + a**2 * b + a * b**2 + b**3) / 6]]],
+            [[[(a**4 + a**3 * b + a**2 * b**2 + a * b**3 + b**4) / 24]]],
+        ])
 
         lj, gj = s[1]
         self.assertAlmostEqual(lj, 1)
@@ -77,11 +82,11 @@ class Test(unittest.TestCase):
         self.assertEqual(len(gj[0]), 1)
         g = gj[0][0]
         np.testing.assert_allclose(g, [
-            [1],
-            [(a + b) / 2],
-            [(a**2 + a * b + b**2) / 6],
-            [(a**3 + a**2 * b + a * b**2 + b**3) / 24],
-            ])
+            [[[1]]],
+            [[[(a + b) / 2]]],
+            [[[(a**2 + a * b + b**2) / 6]]],
+            [[[(a**3 + a**2 * b + a * b**2 + b**3) / 24]]],
+        ])
 
 
     def test_5(self):
@@ -116,31 +121,31 @@ class Test(unittest.TestCase):
         # f = x^2
         g = gj[0][0]
         np.testing.assert_allclose(g / max(g[0]),[
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
+            [[[1]]],
+            [[[0]]],
+            [[[0]]],
+            [[[0]]],
+            [[[0]]],
         ])
         
         # f = x^2 ln(x)
         g = gj[0][1]
         np.testing.assert_allclose(g / max(g[0]),[
-            [0, 1],
-            [0, 0],
-            [0, 0],
-            [0, 0],
-            [0, 0],
+            [[[0]], [[1]]],
+            [[[0]], [[0]]],
+            [[[0]], [[0]]],
+            [[[0]], [[0]]],
+            [[[0]], [[0]]],
         ])
 
         # f = x^2 ln^2(x)
         g = gj[0][2]
         np.testing.assert_allclose(g / max(g[0]),[
-            [0, 0, 1],
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
+            [[[0]], [[0]], [[1]]],
+            [[[0]], [[0]], [[0]]],
+            [[[0]], [[0]], [[0]]],
+            [[[0]], [[0]], [[0]]],
+            [[[0]], [[0]], [[0]]],
         ])
 
         lj, gj = s[1]
@@ -151,17 +156,135 @@ class Test(unittest.TestCase):
         # f = x^3
         g = gj[0][0]
         np.testing.assert_allclose(g / max(g[0]),[
-            [1],
-            [0],
-            [0],
-            [0],
+            [[[1]]],
+            [[[0]]],
+            [[[0]]],
+            [[[0]]],
         ])
         
         # f = x^3 ln(x)
         g = gj[0][1]
         np.testing.assert_allclose(g / max(g[0]),[
-            [0, 1],
-            [0, 0],
-            [0, 0],
-            [0, 0],
+            [[[0]], [[1]]],
+            [[[0]], [[0]]],
+            [[[0]], [[0]]],
+            [[[0]], [[0]]],
         ])
+
+
+class TestSystem(unittest.TestCase):
+
+    def test_bessel_1(self):
+        # nth Bessel equation converted to a system of two 1st order ODEs
+        # f = (y, y'/x)
+        n = 2
+        ode_coefs_theta = np.array([
+            [ # theta^0
+                [ # x^0
+                    [0, -1],
+                    [-n**2, 0],
+                ],
+                [ # x^1
+                    [0, 0],
+                    [0, 0],
+                ],
+                [ # x^2
+                    [0, 0],
+                    [1, 0],
+                ],
+            ],
+            [ # theta^1
+                [ # x^0
+                    [1, 0],
+                    [0, 1],
+                ],
+                [ # x^1
+                    [0, 0],
+                    [0, 0],
+                ],
+                [ # x^2
+                    [0, 0],
+                    [0, 0],
+                ],
+            ],
+        ])
+        s = solve(ode_coefs_theta, min_terms=5)
+        self.assertEqual(len(s), 2)
+
+        lj, gj = s[0]
+        self.assertAlmostEqual(lj, -2)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 1)
+        g = gj[0][0]
+        print(g)
+
+    
+    def test_spherical_bessel_1(self):
+        # nth spherical Bessel equation converted to a system of two 1st order ODEs
+        # f = (y, y'*x)
+        n = 2
+        ode_coefs_theta = np.array([
+            [ # theta^0
+                [ # x^0
+                    [0, -1],
+                    [-n * (n + 1), 1],
+                ],
+                [ # x^1
+                    [0, 0],
+                    [0, 0],
+                ],
+                [ # x^2
+                    [0, 0],
+                    [1, 0],
+                ],
+            ],
+            [ # theta^1
+                [ # x^0
+                    [1, 0],
+                    [0, 1],
+                ],
+                [ # x^1
+                    [0, 0],
+                    [0, 0],
+                ],
+                [ # x^2
+                    [0, 0],
+                    [0, 0],
+                ],
+            ],
+        ])
+        s = solve(ode_coefs_theta, min_terms=5)
+        self.assertEqual(len(s), 2)
+
+        lj, gj = s[0]
+        self.assertAlmostEqual(lj, -3)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 1)
+        g = gj[0][0]
+        np.testing.assert_allclose(g * (-3 / g[0, 0, 0, 0]), [
+            [[[-3], [9]]],
+            [[[0], [0]]],
+            [[[-1/2], [1/2]]],
+            [[[0], [0]]],
+            [[[-1/8], [-1/8]]],
+            [[[0], [0]]],
+            [[[1/48], [1/16]]],
+            [[[0], [0]]],
+            [[[-1/1152], [-5/1152]]],
+            [[[0], [0]]],
+        ])
+
+        lj, gj = s[1]
+        self.assertAlmostEqual(lj, 2)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 1)
+        g = gj[0][0]
+        np.testing.assert_allclose(g / g[0, 0, 0, 0], [
+            [[[1], [2]]],
+            [[[0], [0]]],
+            [[[-1/14], [-4/14]]],
+            [[[0], [0]]],
+            [[[1/504], [6/504]]],
+        ])
+
+TestSystem().test_bessel_1()
