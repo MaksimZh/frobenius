@@ -58,7 +58,8 @@ class ArrayPoly:
         coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
         for s in range(self.npow):
-            coefs[s : s + value.npow] += self.coefs[s : s + 1] * value.coefs
+            for v in range(value.npow):
+                coefs[s + v] += self.coefs[s] * value.coefs[v]
         return ArrayPoly(coefs)
 
     def __rmul__(self, value):
