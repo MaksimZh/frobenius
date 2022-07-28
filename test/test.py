@@ -172,9 +172,63 @@ class TestSingle(unittest.TestCase):
         ])
 
 
+    def test_bessel(self):
+        n = 2
+        ode_coefs_theta = np.array([
+            [ # theta^0
+                [[-n**2]], # x^0
+                [[0]], # x^1
+                [[1]], # x^2
+            ],
+            [ # theta^1
+                [[0]], # x^0
+                [[0]], # x^1
+                [[0]], # x^2
+            ],
+            [ # theta^2
+                [[1]], # x^0
+                [[0]], # x^1
+                [[0]], # x^2
+            ],
+        ])
+        s = solve(ode_coefs_theta, min_terms=5)
+        self.assertEqual(len(s), 2)
+
+        lj, gj = s[0]
+        self.assertAlmostEqual(lj, -2)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 1)
+        g = gj[0][0]
+        np.testing.assert_allclose(g / g[0, 0, 0, 0], [
+            [[[1]], [[0]]],
+            [[[0]], [[0]]],
+            [[[1/4]], [[0]]],
+            [[[0]], [[0]]],
+            [[[1/64]], [[-1/16]]],
+            [[[0]], [[0]]],
+            [[[-11/2304]], [[1/192]]],
+            [[[0]], [[0]]],
+            [[[31/147456]], [[-1/6144]]],
+        ])
+
+        lj, gj = s[1]
+        self.assertAlmostEqual(lj, 2)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 1)
+        g = gj[0][0]
+        np.testing.assert_allclose(g / g[0, 0, 0, 0], [
+            [[[1]]],
+            [[[0]]],
+            [[[-1/12]]],
+            [[[0]]],
+            [[[1/384]]],
+        ])
+
+
+
 class TestSystem(unittest.TestCase):
 
-    def test_bessel_1(self):
+    def test_bessel(self):
         # nth Bessel equation converted to a system of two 1st order ODEs
         # f = (y, x * y')
         n = 2
@@ -216,10 +270,33 @@ class TestSystem(unittest.TestCase):
         self.assertEqual(len(gj), 1)
         self.assertEqual(len(gj[0]), 1)
         g = gj[0][0]
-        #print(g * -2)
+        np.testing.assert_allclose(g / g[0, 0, 0, 0], [
+            [[[1], [-2]], [[0], [0]]],
+            [[[0], [0]], [[0], [0]]],
+            [[[1/4], [0]], [[0], [0]]],
+            [[[0], [0]], [[0], [0]]],
+            [[[1/64], [-1/32]], [[-1/16], [-1/8]]],
+            [[[0], [0]], [[0], [0]]],
+            [[[-11/2304], [-1/72]], [[1/192], [1/48]]],
+            [[[0], [0]], [[0], [0]]],
+            [[[31/147456], [9/8192]], [[-1/6144], [-1/1024]]],
+        ], atol=1e-10)
+
+        lj, gj = s[1]
+        self.assertAlmostEqual(lj, 2)
+        self.assertEqual(len(gj), 1)
+        self.assertEqual(len(gj[0]), 1)
+        g = gj[0][0]
+        np.testing.assert_allclose(g / g[0, 0, 0, 0], [
+            [[[1], [2]]],
+            [[[0], [0]]],
+            [[[-1/12], [-1/3]]],
+            [[[0], [0]]],
+            [[[1/384], [1/64]]],
+        ], atol=1e-10)
 
     
-    def test_spherical_bessel_1(self):
+    def test_spherical_bessel(self):
         # nth spherical Bessel equation converted to a system of two 1st order ODEs
         # f = (y, x * y')
         n = 2
@@ -286,5 +363,3 @@ class TestSystem(unittest.TestCase):
             [[[0], [0]]],
             [[[1/504], [6/504]]],
         ])
-
-TestSystem().test_bessel_1()
