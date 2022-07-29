@@ -16,7 +16,8 @@ def smith(a, factor, atol=1e-12):
             remainder_matrix[:, column : column + 1] = \
                 a @ inv_right_matrix[:, column : column + 1] // factor_powers[exponent] % factor
             expansion_coefs = expandLast(remainder_matrix[:, : column + 1], atol)
-            if expansion_coefs is None:
+            is_lin_indep_columns = expansion_coefs is None
+            if is_lin_indep_columns:
                 diag_factor_exponents[column] = exponent
                 column += 1
             else:
@@ -39,7 +40,8 @@ def smith(a, factor, atol=1e-12):
 def expandLast(matrix_poly, atol=1e-12):
     coef_columns = matrix_poly.coefs.reshape(-1, matrix_poly.shape[-1])
     u, singular_values, inv_right_matrix = np.linalg.svd(coef_columns)
-    if singular_values[-1] > atol:
+    is_lin_indep_columns = singular_values[-1] > atol
+    if is_lin_indep_columns:
         return None
     else:
         matrix_poly = np.conj(inv_right_matrix[-1])
