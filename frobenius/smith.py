@@ -40,7 +40,9 @@ def smith(a, factor, atol=1e-12):
 def expandLast(matrix_poly, atol=1e-12):
     coef_columns = matrix_poly.coefs.reshape(-1, matrix_poly.shape[-1])
     u, singular_values, inv_right_matrix = np.linalg.svd(coef_columns)
+    del u
     is_lin_indep_columns = singular_values[-1] > atol
+    del singular_values
     if is_lin_indep_columns:
         return None
     else:
