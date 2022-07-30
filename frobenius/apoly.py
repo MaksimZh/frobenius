@@ -87,6 +87,7 @@ class ArrayPoly:
         result_shape = np.broadcast(self.coefs[0], value.coefs[0]).shape
         coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
+        del npow, result_shape
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] += value.coefs
         return ArrayPoly(coefs)
@@ -96,6 +97,7 @@ class ArrayPoly:
         result_shape = np.broadcast(self.coefs[0], value.coefs[0]).shape
         coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
+        del npow, result_shape
         coefs[:self.npow] += self.coefs
         coefs[:value.npow] -= value.coefs
         return ArrayPoly(coefs)
@@ -109,6 +111,7 @@ class ArrayPoly:
             value.coefs[0, ..., 0:1, :]).shape
         coefs = np.zeros((npow, *result_shape),
             dtype=np.result_type(self.coefs, value.coefs))
+        del npow, result_shape
         for s in range(self.npow):
             coefs[s : s + value.npow] += self.coefs[s : s + 1] @ value.coefs
         return ArrayPoly(coefs)
@@ -127,14 +130,11 @@ class ArrayPoly:
         remainder_poly_coefs = self.coefs / np.ones_like(value.coefs[:1])[0]
         divisor_poly_coefs = value.coefs[_it((), self.ndim)]
         quotient_poly_coefs = []
-        si = self.npow - value.npow
-        sf = self.npow - 1
-        for _ in range(self.npow - value.npow + 1):
-            qc = remainder_poly_coefs[sf] / divisor_poly_coefs[-1]
-            remainder_poly_coefs[si : sf + 1] -= qc * divisor_poly_coefs
-            si -= 1
-            sf -= 1
+        for i in reversed(range(self.npow - value.npow + 1)):
+            qc = remainder_poly_coefs[i + value.npow - 1] / divisor_poly_coefs[-1]
+            remainder_poly_coefs[i : i + value.npow] -= qc * divisor_poly_coefs
             quotient_poly_coefs.append(qc)
+            del qc
         rem = ArrayPoly(remainder_poly_coefs[: value.npow - 1])
         quo = ArrayPoly(np.array(list(reversed(quotient_poly_coefs))))
         return quo, rem

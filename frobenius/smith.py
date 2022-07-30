@@ -5,12 +5,12 @@ from frobenius.apoly import ArrayPoly, trim
 
 def smith(a, factor, atol=1e-12):
     size = a.shape[0]
-    exponent = 0
-    column = 0
     inv_right_matrix = ArrayPoly(np.eye(size, dtype=np.common_type(a.coefs, factor.coefs))[np.newaxis])
     remainder_matrix = ArrayPoly(np.zeros_like(inv_right_matrix.coefs))
     factor_powers = [ArrayPoly(1)]
     diag_factor_exponents = np.zeros(size, dtype=int)
+    column = 0
+    exponent = 0
     while column < size:
         for j in range(0, size - column):
             remainder_matrix[:, column : column + 1] = \
@@ -31,6 +31,7 @@ def smith(a, factor, atol=1e-12):
                     np.roll(inv_right_matrix.coefs[..., column:], shift=-1, axis=-1)
         exponent += 1
         factor_powers.append(factor_powers[-1] * factor)
+    del column, exponent
     left_matrix = a @ inv_right_matrix
     for column in range(size):
         left_matrix[:, column] //= factor_powers[diag_factor_exponents[column]]
