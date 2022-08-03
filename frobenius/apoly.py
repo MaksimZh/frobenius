@@ -55,8 +55,9 @@ class ArrayPoly:
             return ArrayPoly(self.coefs * value)
         npow = self.npow + value.npow - 1
         result_shape = np.broadcast(self.coefs[0], value.coefs[0]).shape
-        coefs = np.zeros((npow, *result_shape),
-            dtype=np.result_type(self.coefs, value.coefs))
+        result_type = np.result_type(self.coefs, value.coefs)
+        coefs = np.zeros((npow, *result_shape), dtype=result_type)
+        del npow, result_shape, result_type
         for s in range(self.npow):
             for v in range(value.npow):
                 coefs[s + v] += self.coefs[s] * value.coefs[v]
