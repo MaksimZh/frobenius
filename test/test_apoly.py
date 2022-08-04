@@ -23,6 +23,8 @@ class TestBasic(unittest.TestCase):
             coefs[1] + 2 * coefs[2] * x)
         np.testing.assert_equal(a(x, deriv=2), 2 * coefs[2])
         np.testing.assert_equal(a(x, deriv=3), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=4), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=5), 0 * coefs[0])
         
         x = np.array([2, 3])
         np.testing.assert_equal(a(x),
@@ -32,6 +34,8 @@ class TestBasic(unittest.TestCase):
             coefs[1] + 2 * coefs[2] * x)
         np.testing.assert_equal(a(x, deriv=2), 2 * coefs[2])
         np.testing.assert_equal(a(x, deriv=3), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=4), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=5), 0 * coefs[0])
         
         x = np.array([[2, 3, 4], [5, 6, 7]])
         np.testing.assert_equal(a(x),
@@ -41,6 +45,8 @@ class TestBasic(unittest.TestCase):
             coefs[1] + 2 * coefs[2] * x)
         np.testing.assert_equal(a(x, deriv=2), 2 * coefs[2])
         np.testing.assert_equal(a(x, deriv=3), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=4), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=5), 0 * coefs[0])
 
 
     def test_1d(self):
@@ -59,6 +65,8 @@ class TestBasic(unittest.TestCase):
             coefs[1] + 2 * coefs[2] * x)
         np.testing.assert_equal(a(x, deriv=2), 2 * coefs[2])
         np.testing.assert_equal(a(x, deriv=3), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=4), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=5), 0 * coefs[0])
         
         x = np.array([2, 3])
         xa = x[..., np.newaxis]
@@ -70,6 +78,8 @@ class TestBasic(unittest.TestCase):
             ca[1] + ca[2] * xa * 2)
         np.testing.assert_equal(a(x, deriv=2), ca[2] * 2)
         np.testing.assert_equal(a(x, deriv=3), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=4), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=5), ca[0] * 0)
         
         x = np.array([[2, 3, 4], [5, 6, 7]])
         xa = x[..., np.newaxis]
@@ -81,6 +91,8 @@ class TestBasic(unittest.TestCase):
             ca[1] + ca[2] * xa * 2)
         np.testing.assert_equal(a(x, deriv=2), ca[2] * 2)
         np.testing.assert_equal(a(x, deriv=3), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=4), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=5), ca[0] * 0)
 
 
     def test_2d(self):
@@ -101,6 +113,8 @@ class TestBasic(unittest.TestCase):
             2 * coefs[2] + 6 * coefs[3] * x)
         np.testing.assert_equal(a(x, deriv=3), 6 * coefs[3])
         np.testing.assert_equal(a(x, deriv=4), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=5), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=6), 0 * coefs[0])
         
         x = np.array([2, 3])
         xa = x[..., np.newaxis, np.newaxis]
@@ -114,6 +128,8 @@ class TestBasic(unittest.TestCase):
             ca[2] * 2 + ca[3] * xa * 6)
         np.testing.assert_equal(a(x, deriv=3), ca[3] * 6)
         np.testing.assert_equal(a(x, deriv=4), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=5), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=6), ca[0] * 0)
         
         x = np.array([[2, 3, 4], [5, 6, 7]])
         xa = x[..., np.newaxis, np.newaxis]
@@ -127,6 +143,8 @@ class TestBasic(unittest.TestCase):
             ca[2] * 2 + ca[3] * xa * 6)
         np.testing.assert_equal(a(x, deriv=3), ca[3] * 6)
         np.testing.assert_equal(a(x, deriv=4), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=5), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=6), ca[0] * 0)
 
 
     def test_3d(self):
@@ -145,7 +163,9 @@ class TestBasic(unittest.TestCase):
             coefs[1] + 2 * coefs[2] * x)
         np.testing.assert_equal(a(x, deriv=2), 2 * coefs[2])
         np.testing.assert_equal(a(x, deriv=3), 0 * coefs[0])
-        
+        np.testing.assert_equal(a(x, deriv=4), 0 * coefs[0])
+        np.testing.assert_equal(a(x, deriv=5), 0 * coefs[0])
+         
         x = np.array([2, 3])
         xa = x[..., np.newaxis, np.newaxis, np.newaxis]
         ca = coefs[:, np.newaxis] * np.ones_like(xa)
@@ -156,7 +176,9 @@ class TestBasic(unittest.TestCase):
             ca[1] + ca[2] * xa * 2)
         np.testing.assert_equal(a(x, deriv=2), ca[2] * 2)
         np.testing.assert_equal(a(x, deriv=3), ca[0] * 0)
-        
+        np.testing.assert_equal(a(x, deriv=4), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=5), ca[0] * 0)
+          
         x = np.array([[2, 3, 4], [5, 6, 7]])
         xa = x[..., np.newaxis, np.newaxis, np.newaxis]
         ca = coefs[:, np.newaxis, np.newaxis] * np.ones_like(xa)
@@ -167,7 +189,9 @@ class TestBasic(unittest.TestCase):
             ca[1] + ca[2] * xa * 2)
         np.testing.assert_equal(a(x, deriv=2), ca[2] * 2)
         np.testing.assert_equal(a(x, deriv=3), ca[0] * 0)
-
+        np.testing.assert_equal(a(x, deriv=4), ca[0] * 0)
+        np.testing.assert_equal(a(x, deriv=5), ca[0] * 0)
+  
 
 class TestCoefs(unittest.TestCase):
 

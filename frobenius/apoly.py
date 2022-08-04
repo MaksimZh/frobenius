@@ -147,9 +147,12 @@ class ArrayPoly:
 
     def __evalScalar(self, x, deriv):
         pows = np.arange(self.npow)
-        factors = np.ones(self.npow)
-        for i in range(deriv):
-            factors[i:] *= pows[: len(pows) - i]
+        if deriv <= self.npow:
+            factors = np.ones(self.npow)
+            for i in range(deriv):
+                factors[i:] *= pows[: len(pows) - i]
+        else:
+            factors = np.zeros(self.npow)
         pows -= deriv
         pows[pows < 0] = 0
         it = _it((), self.ndim)
@@ -159,9 +162,12 @@ class ArrayPoly:
 
     def __evalArray(self, x, deriv):
         pows = np.arange(self.npow)
-        factors = np.ones(self.npow)
-        for i in range(deriv):
-            factors[i:] *= pows[: len(pows) - i]
+        if deriv <= self.npow:
+            factors = np.ones(self.npow)
+            for i in range(deriv):
+                factors[i:] *= pows[: len(pows) - i]
+        else:
+            factors = np.zeros(self.npow)
         pows -= deriv
         pows[pows < 0] = 0
         return np.sum(
