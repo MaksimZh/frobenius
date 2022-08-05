@@ -144,6 +144,8 @@ def _calcB(mxY, mxLt, lj, ct):
             _derivMatMul(mxLt[m], lj, ct[m], deriv=t) \
             for m in range(ct.shape[0]))
         if len(b) > 0:
+            # calculate the t-th derivative of mxY @ b
+            # except the term with the t-th derivative of b
             right_part += _derivMatMul(mxY, lj, b, deriv=t)
         b.append(-inv_left_matrix @ right_part)
     return b
@@ -152,6 +154,7 @@ def _calcB(mxY, mxLt, lj, ct):
 def _derivMatMul(a, x, b, deriv):
     terms = []
     binom_coef = 1
+    # all missing derivatives in b are assumed to be zero
     for t in range(0, min(deriv + 1, len(b))):
         terms.append(binom_coef * a(x, deriv=deriv-t) @ b[t])
         binom_coef *= (deriv - t) / (t + 1)

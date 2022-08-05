@@ -36,6 +36,7 @@ class ArrayPoly:
         return ArrayPoly(self.coefs[self.__coefsIndex(index)])
 
     def __setitem__(self, index, value):
+        # extend self.coefs if needed
         if value.npow > self.npow:
             coefs = np.zeros((value.npow, *self.shape), dtype=self.coefs.dtype)
             coefs[:self.npow] = self.coefs
@@ -180,6 +181,7 @@ class ArrayPoly:
 
     def __substPoly(self, x):
         if x.ndim == 0:
+            # broadcast scalar polynomial over all dimensions of self
             x = ArrayPoly(x.coefs[_it((), self.ndim)])
         result = ArrayPoly(np.zeros_like([self.coefs[0] * x.coefs[0]]))
         for p in range(self.npow):

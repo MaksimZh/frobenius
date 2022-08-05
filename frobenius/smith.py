@@ -32,7 +32,9 @@ def smith(a, factor, atol=1e-12):
         exponent += 1
         factor_powers.append(factor_powers[-1] * factor)
     del column, exponent
+
     left_matrix = a @ inv_right_matrix
+    # multiply by inverse diagonal part of local normal Smith form
     for column in range(size):
         left_matrix[:, column] //= factor_powers[diag_factor_exponents[column]]
     return trim(inv_right_matrix, atol), trim(left_matrix, atol), diag_factor_exponents
