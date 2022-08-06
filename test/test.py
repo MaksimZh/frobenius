@@ -110,6 +110,8 @@ class TestSingle(unittest.TestCase):
                 [[1]], # x^0
             ],
         ])
+        # Don't remove lambda_roots parameter
+        # automatic root calculation is not precise enough for this test
         s = solve(mxA, min_terms=4, lambda_roots=[2, 3])
         self.assertEqual(len(s), 2)
 

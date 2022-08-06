@@ -60,6 +60,8 @@ class ArrayPoly:
         coefs = np.zeros((npow, *result_shape), dtype=result_type)
         del npow, result_shape, result_type
         for s in range(self.npow):
+            # be careful with vectorization of the internal loop
+            # as it can break broadcasting in case of value.ndims=0
             for v in range(value.npow):
                 coefs[s + v] += self.coefs[s] * value.coefs[v]
         return ArrayPoly(coefs)

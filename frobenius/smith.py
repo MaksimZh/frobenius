@@ -13,6 +13,8 @@ def smith(a, factor, atol=1e-12):
     exponent = 0
     while column < size:
         for j in range(0, size - column):
+            # subsequent // and % operations is essential part of the algorithm
+            # we extract the terms with specific power of factor
             remainder_matrix[:, column : column + 1] = \
                 a @ inv_right_matrix[:, column : column + 1] // factor_powers[exponent] % factor
             expansion_coefs = expandLast(remainder_matrix[:, : column + 1], atol)
@@ -22,8 +24,7 @@ def smith(a, factor, atol=1e-12):
                 column += 1
             else:
                 for m in range(0, column):
-                    inv_right_matrix[:, column] = \
-                        inv_right_matrix[:, column] - \
+                    inv_right_matrix[:, column] -= \
                         factor_powers[exponent - diag_factor_exponents[m]] * \
                         expansion_coefs[m] * \
                         inv_right_matrix[:, m]
