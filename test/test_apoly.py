@@ -290,6 +290,8 @@ class TestIndex(unittest.TestCase):
 
 class TestArithmetic(unittest.TestCase):
 
+    # TODO add tests for polynomials with ndims=0 and npows=0
+
     def test_pos(self):
         a = ArrayPoly(genCoefs(4, 2, 3))
         np.testing.assert_equal((+a).coefs, a.coefs)

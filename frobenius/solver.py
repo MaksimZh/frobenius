@@ -46,6 +46,7 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
     kernelSize = sum(k > 0 for k in kappa[0])
     jordanChainsLen = kappa[0][-kernelSize:]
     del mxX, factor, kappa
+    # TODO - move calculation of ct to separate function
     ct = []
     for k in range(kernelSize):
         ctk = np.zeros((coefsNum, alpha + jordanChainsLen[k], mxSize, 1),
@@ -61,6 +62,7 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
         ct.append(ctk)
         del ctk
     del mxY, mxXt, mxLt
+    # TODO - move calculation of g to separate function
     g = []
     for k in range(kernelSize):
         gk = []
