@@ -40,22 +40,10 @@ def _calcCoefs(mxL, lj, atol):
 
 
 def _calcAllCt(mxL, lj, atol):
-    factor = ArrayPoly([-lj, 1])
-    ct = _calcInitialCt(mxL[0], lj, atol)
-    beta = [0]
-    for n in range(1, len(mxL)):
-        mxX, mxY, kappa = smith(mxL[0](ArrayPoly([n, 1])), factor, atol=atol)
-        mxZ = [trim(factor**(beta[n - 1] - beta[m]) * mxL[n - m](ArrayPoly([m, 1]))) \
-            for m in range(n)]
-        beta.append(beta[-1] + kappa[-1])
-        for k in range(len(ct)):
-            nDeriv = len(ct[k][-1]) + kappa[-1]
-            b = _calcB(mxY, mxZ, lj, ct[k], nDeriv)
-            mxXt = _calcXt(factor, mxX, kappa)
-            ct[k].append(_calcCt(mxXt, lj, b, nDeriv))
-            del nDeriv, b, mxXt
-        del mxX, mxY, kappa
-    return ct
+    if len(mxL) == 1:
+        return _calcInitialCt(mxL[0], lj, atol)
+    ct = _calcAllCt(mxL[:-1], lj, atol)
+    return _calcNextCt(mxL, ct, lj, atol)
 
 
 def _calcInitialCt(mxL0, lj, atol):
@@ -68,6 +56,21 @@ def _calcInitialCt(mxL0, lj, atol):
     return [[[mxX(lj, deriv=t) @ _ort(mxSize, -1 - kernelSize + k + 1) \
         for t in range(jordanChainsLen[k])]] \
         for k in range(kernelSize)]
+
+
+def _calcNextCt(mxL, ct, lj, atol):
+    factor = ArrayPoly([-lj, 1])
+    n = len(mxL) - 1
+    mxX, mxY, kappa = smith(mxL[0](ArrayPoly([n, 1])), factor, atol=atol)
+    mxZ = [trim(factor**(len(ct[0][n - 1]) - len(ct[0][m])) * mxL[n - m](ArrayPoly([m, 1]))) \
+        for m in range(n)]
+    for k in range(len(ct)):
+        nDeriv = len(ct[k][-1]) + kappa[-1]
+        b = _calcB(mxY, mxZ, lj, ct[k], nDeriv)
+        mxXt = _calcXt(factor, mxX, kappa)
+        ct[k].append(_calcCt(mxXt, lj, b, nDeriv))
+        del nDeriv, b, mxXt
+    return ct
 
 
 def _calcG(ct, atol):
