@@ -13,7 +13,7 @@ def solve(mxA, min_terms=3, lambda_roots=None, atol=1e-12):
         mxL.append(ArrayPoly(np.zeros_like(mxA[:1, 0])))
     solutions = []
     for j in range(len(lam)):
-        g = _calcCoefs(mxL, lam[j], coefsNum[j], atol)
+        g = _calcCoefs(mxL[:coefsNum[j]], lam[j], atol)
         solutions.append((lam[j], g))
     return solutions
 
@@ -34,14 +34,19 @@ def _prepareLambda(mxL0, lambda_roots=None):
     return lam
 
 
-def _calcCoefs(mxL, lj, coefsNum, atol):
+def _calcCoefs(mxL, lj, atol):
+    ct = _calcAllCt(mxL, lj, atol)
+    return [_calcG(ctk, atol) for ctk in ct]
+
+
+def _calcAllCt(mxL, lj, atol):
+    coefsNum = len(mxL)
     mxSize = mxL[0].shape[0]
     factor = ArrayPoly([-lj, 1])
     mxX, mxY, kappa = \
         _calcSmithN(mxL[0], num=coefsNum, factor=factor, atol=atol)
     kernelSize = sum(k > 0 for k in kappa[0])
     jordanChainsLen = kappa[0][-kernelSize:]
-    # TODO - move calculation of ct to separate function
     ct = []
     for k in range(kernelSize):
         ctk = []
@@ -65,8 +70,7 @@ def _calcCoefs(mxL, lj, coefsNum, atol):
             del nDeriv
         ct.append(ctk)
         del ctk
-    return [_calcG(ctk, atol) for ctk in ct]
-
+    return ct
 
 def _calcG(ct, atol):
     mxSize = ct[0].shape[1]
