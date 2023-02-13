@@ -15,8 +15,10 @@ def smith(a, factor, atol=1e-12):
         for j in range(0, size - column):
             # subsequent // and % operations is essential part of the algorithm
             # we extract the terms with specific power of factor
-            remainder_matrix[:, column : column + 1] = \
-                a @ inv_right_matrix[:, column : column + 1] // factor_powers[exponent] % factor
+            column_vector = a @ inv_right_matrix[:, column : column + 1]
+            higher_pow_coef = column_vector // factor_powers[exponent]
+            remainder_matrix[:, column : column + 1] = higher_pow_coef % factor
+            del column_vector, higher_pow_coef
             expansion_coefs = expandLast(remainder_matrix[:, : column + 1], atol)
             is_lin_indep_columns = expansion_coefs is None
             if is_lin_indep_columns:
