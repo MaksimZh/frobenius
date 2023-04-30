@@ -7,55 +7,53 @@ from frobenius.tools import Status, status
 
 def smith(a, factor, atol=1e-12):
     size = a.shape[0]
-    inv_right_matrix = ArrayPoly(np.eye(size, dtype=np.common_type(a.coefs, factor.coefs))[np.newaxis])
-    remainder_matrix = ArrayPoly(np.zeros_like(inv_right_matrix.coefs))
+    inv_right_matrix = ExtendibleMatrix(size)
+    remainder_matrix = ExtendibleMatrix(size)
+    seed_matrix = ArrayPoly(np.eye(size, dtype=np.common_type(a.coefs, factor.coefs))[np.newaxis])
+    seed_columns = ColumnQueue(size)
+    for i in range(size):
+        seed_columns.push_right(seed_matrix[:, i : i + 1])
     factor_powers = [ArrayPoly(1)]
-    diag_factor_exponents = np.zeros(size, dtype=int)
-    column = 0
+    diag_factor_exponents = []
     exponent = 0
-    while column < size:
-        for j in range(0, size - column):
-            # subsequent // and % operations is essential part of the algorithm
-            # we extract the terms with specific power of factor
-            column_vector = a @ inv_right_matrix[:, column : column + 1]
-            higher_pow_coef = column_vector // factor_powers[exponent]
-            remainder_matrix[:, column : column + 1] = higher_pow_coef % factor
-            del column_vector, higher_pow_coef
-            expansion_coefs = expandLast(remainder_matrix[:, : column + 1], atol)
-            is_lin_indep_columns = expansion_coefs is None
-            if is_lin_indep_columns:
-                diag_factor_exponents[column] = exponent
-                column += 1
-            else:
-                for m in range(0, column):
-                    inv_right_matrix[:, column] -= \
-                        factor_powers[exponent - diag_factor_exponents[m]] * \
-                        expansion_coefs[m] * \
-                        inv_right_matrix[:, m]
-                inv_right_matrix.coefs[..., column:] = \
-                    np.roll(inv_right_matrix.coefs[..., column:], shift=-1, axis=-1)
-        exponent += 1
-        factor_powers.append(factor_powers[-1] * factor)
-    del column, exponent
+    new_seed_columns = ColumnQueue(size)
+    while not (seed_columns.is_empty() and new_seed_columns.is_empty()):
+        if seed_columns.is_empty():
+            exponent += 1
+            factor_powers.append(factor_powers[-1] * factor)
+            seed_columns, new_seed_columns = new_seed_columns, seed_columns
+        seed_column = seed_columns.get_left()
+        seed_columns.pop_left()
+        # subsequent // and % operations is essential part of the algorithm
+        # we extract the terms with specific power of factor
+        remainder_column = (a @ seed_column) // factor_powers[exponent] % factor
+        if is_zero(remainder_column, atol):
+            new_seed_columns.push_right(seed_column)
+            continue
+        expansion_coefs = remainder_matrix.expand_column(remainder_column)
+        if remainder_matrix.is_status("expand_column", "EMPTY") \
+                or remainder_matrix.is_status("expand_column", "NOT_COMPLANAR"):
+            inv_right_matrix.push_right(seed_column)
+            remainder_matrix.push_right(remainder_column)
+            diag_factor_exponents.append(exponent)
+            continue
+        assert remainder_matrix.is_status("expand_column", "OK")
+        assert not inv_right_matrix.is_empty()
+        expansion_factor_powers = [factor_powers[exponent - dfe] for dfe in diag_factor_exponents]
+        coefs = [ec * efp for ec, efp in zip(expansion_coefs, expansion_factor_powers)]
+        new_seed = remainder_column - inv_right_matrix.combine_columns(coefs)
+        new_seed_columns.push_right(new_seed)
 
+    inv_right_matrix = inv_right_matrix.get_matrix()
     left_matrix = a @ inv_right_matrix
     # multiply by inverse diagonal part of local normal Smith form
     for column in range(size):
         left_matrix[:, column] //= factor_powers[diag_factor_exponents[column]]
-    return trim(inv_right_matrix, atol), trim(left_matrix, atol), diag_factor_exponents
+    return trim(inv_right_matrix, atol), trim(left_matrix, atol), np.array(diag_factor_exponents)
 
-def expandLast(matrix_poly, atol=1e-12):
-    coef_columns = matrix_poly.coefs.reshape(-1, matrix_poly.shape[-1])
-    u, singular_values, inv_right_matrix = np.linalg.svd(coef_columns)
-    del u
-    is_lin_indep_columns = singular_values[-1] > atol
-    del singular_values
-    if is_lin_indep_columns:
-        return None
-    else:
-        matrix_poly = np.conj(inv_right_matrix[-1])
-    coef_columns = -matrix_poly[:-1] / matrix_poly[-1]
-    return coef_columns
+
+def is_zero(poly: ArrayPoly, atol: float = 1e-12) -> bool:
+    return np.sum(np.abs(poly.coefs)) < atol
 
 # Collects columns added to the right side
 class ColumnCollector(Status):
