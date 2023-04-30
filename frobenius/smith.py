@@ -41,7 +41,7 @@ def smith(a, factor, atol=1e-12):
         assert not inv_right_matrix.is_empty()
         expansion_factor_powers = [factor_powers[exponent - dfe] for dfe in diag_factor_exponents]
         coefs = [ec * efp for ec, efp in zip(expansion_coefs, expansion_factor_powers)]
-        new_seed = remainder_column - inv_right_matrix.combine_columns(coefs)
+        new_seed = seed_column - inv_right_matrix.combine_columns(coefs)
         new_seed_columns.push_right(new_seed)
 
     inv_right_matrix = inv_right_matrix.get_matrix()
@@ -161,7 +161,7 @@ class ExtendibleMatrix(ColumnCollector):
     # PRE: `column` size fits matrix
     # PRE: `column` is complanar with matrix columns
     @status("OK", "INVALID_COLUMN", "EMPTY", "NOT_COMPLANAR")
-    def expand_column(self, column: ArrayPoly, atol: float = 1e-12) -> list[complex]:
+    def expand_column(self, column: ArrayPoly, atol: float = 1e-12) -> list[Any]:
         if column.ndim != 2 or column.shape[1] != 1 or column.shape[0] != self._nrows:
             self._set_status("expand_column", "INVALID_COLUMN")
             return []
@@ -170,8 +170,9 @@ class ExtendibleMatrix(ColumnCollector):
             return []
         max_npow = max(d.npow for d in self._data)
         max_npow = max(max_npow, column.npow)
+        common_type = np.common_type(*[d.coefs for d in self._data], column.coefs)
         ncols = len(self._data)
-        coefs = np.zeros((max_npow * self._nrows, ncols + 1))
+        coefs = np.zeros((max_npow * self._nrows, ncols + 1), dtype=common_type)
         for i in range(ncols):
             c = self._data[i].coefs.reshape(-1)
             coefs[:len(c), i] = c
