@@ -93,7 +93,7 @@ class ColumnCollector(Status):
     def is_empty(self) -> bool:
         return len(self._data) == 0
 
-
+# Allows adding columns to the right side and getting/removing them from the left
 class ColumnQueue(ColumnCollector):
 
     # CONSTRUCTOR
@@ -130,6 +130,7 @@ class ColumnQueue(ColumnCollector):
         return self._data[0]
 
 
+# Column collector with some calculation stuff
 class ExtendibleMatrix(ColumnCollector):
 
     # CONSTRUCTOR
